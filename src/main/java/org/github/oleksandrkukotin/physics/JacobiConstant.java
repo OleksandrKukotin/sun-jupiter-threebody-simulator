@@ -1,5 +1,7 @@
 package org.github.oleksandrkukotin.physics;
 
+import org.github.oleksandrkukotin.config.PhysicsConstants;
+import org.github.oleksandrkukotin.exception.IllegalStateDataException;
 import org.github.oleksandrkukotin.model.StateVector;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +20,24 @@ public class JacobiConstant {
 
     /** Computes the Jacobi constant C for the given state vector. */
     public double compute(StateVector state) {
-        // TODO (#4): C = 2 * effectivePotential(x, y) - (xDot² + yDot²)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #4");
+        try {
+            return 2 * effectivePotential(state.x(), state.y())
+                    - (state.xDot() * state.xDot() + state.yDot() * state.yDot());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateDataException("Input StateVector is wrong or empty");
+        }
     }
 
-    /** Computes Ω(x, y) = (x² + y²)/2 + (1−μ)/r₁ + μ/r₂. */
     public double effectivePotential(double x, double y) {
-        // TODO (#4)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #4");
+        return (x * x + y * y)/2 + PhysicsConstants.ONE_MINUS_MU/distanceToSun(x, y) +
+                PhysicsConstants.MU/distanceToJupiter(x, y);
+    }
+
+    private double distanceToSun(double x, double y) {
+        return Math.sqrt((x + PhysicsConstants.MU) * (x + PhysicsConstants.MU) + y * y);
+    }
+
+    private double distanceToJupiter(double x, double y) {
+        return Math.sqrt((x - PhysicsConstants.ONE_MINUS_MU) * (x - PhysicsConstants.ONE_MINUS_MU) + y * y);
     }
 }
