@@ -60,9 +60,11 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 
 ## Implementation Status
 
-Each stub throws `UnsupportedOperationException` with a GitHub issue reference. Implement in dependency order:
+Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Implement in dependency order:
 
-1. `CR3BPEquations.computeDerivatives` (issue #1) — no dependencies
+1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
 2. `LagrangePointCalculator.computeAll` (issue #2) — no dependencies
-3. `StateVectorPropagator.propagate` (issue #3) — depends on #1
-4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` (already done)
+3. `StateVectorPropagator.propagate` (issue #3) — depends on #1 ✓
+4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` ✓
+
+`CR3BPUtils` (same package) provides shared `distanceToSun` / `distanceToJupiter` static helpers used by both `JacobiConstant` and `CR3BPEquations`.

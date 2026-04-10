@@ -1,6 +1,7 @@
 package org.github.oleksandrkukotin.physics;
 
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
+import org.github.oleksandrkukotin.config.PhysicsConstants;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,8 +28,17 @@ public class CR3BPEquations implements FirstOrderDifferentialEquations {
 
     @Override
     public void computeDerivatives(double t, double[] y, double[] yDot) {
-        // TODO (#1): Implement CR3BP equations of motion
-        // y[0] = x,  y[1] = y,  y[2] = xDot,  y[3] = yDot
-        throw new UnsupportedOperationException("Not yet implemented — see issue #1");
+        double x = y[0];
+        double yPos = y[1];
+        double r1 = CR3BPUtils.distanceToSun(x, yPos);
+        double r2 = CR3BPUtils.distanceToJupiter(x, yPos);
+        double xDot = y[2];
+        double yDot_ = y[3];
+        yDot[0] = xDot;
+        yDot[1] = yDot_;
+        yDot[2] = 2 * yDot_ + x - PhysicsConstants.ONE_MINUS_MU * (x + PhysicsConstants.MU) / (r1 * r1 * r1) -
+                PhysicsConstants.MU * ((x - PhysicsConstants.ONE_MINUS_MU) / (r2 * r2 * r2));
+        yDot[3] = -2 * xDot + yPos - PhysicsConstants.ONE_MINUS_MU * yPos / (r1 * r1 * r1) -
+                PhysicsConstants.MU * yPos / (r2 * r2 * r2);
     }
 }
