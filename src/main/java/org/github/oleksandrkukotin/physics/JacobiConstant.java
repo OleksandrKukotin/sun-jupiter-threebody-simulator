@@ -29,15 +29,8 @@ public class JacobiConstant {
     }
 
     public double effectivePotential(double x, double y) {
-        return (x * x + y * y)/2 + PhysicsConstants.ONE_MINUS_MU/distanceToSun(x, y) +
-                PhysicsConstants.MU/distanceToJupiter(x, y);
-    }
-
-    private double distanceToSun(double x, double y) {
-        return Math.sqrt((x + PhysicsConstants.MU) * (x + PhysicsConstants.MU) + y * y);
-    }
-
-    private double distanceToJupiter(double x, double y) {
-        return Math.sqrt((x - PhysicsConstants.ONE_MINUS_MU) * (x - PhysicsConstants.ONE_MINUS_MU) + y * y);
+        return (x * x + y * y)/2
+                + PhysicsConstants.ONE_MINUS_MU / CR3BPUtils.distanceToSun(x, y)
+                + PhysicsConstants.MU / CR3BPUtils.distanceToJupiter(x, y);
     }
 }
