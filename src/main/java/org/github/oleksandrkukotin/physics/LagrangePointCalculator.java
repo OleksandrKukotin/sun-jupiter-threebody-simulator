@@ -3,6 +3,7 @@ package org.github.oleksandrkukotin.physics;
 import org.github.oleksandrkukotin.model.LagrangePoint;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,13 +19,18 @@ public class LagrangePointCalculator {
 
     /** Returns all five Lagrange points in normalized synodic coordinates. */
     public List<LagrangePoint> computeAll() {
-        // TODO (#2): Compute and return L1–L5
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+        List<LagrangePoint> points = new ArrayList();
+        points.add(computeL1());
+        points.add(computeL2());
+        points.add(computeL3());
+        points.add(computeL4());
+        points.add(computeL5());
+        return points;
     }
 
     /** L1: between Sun and Jupiter. Found via Newton's method on the quintic. */
     private LagrangePoint computeL1() {
-        // TODO (#2)
+        LagrangePoint lp = new LagrangePoint();
         throw new UnsupportedOperationException("Not yet implemented — see issue #2");
     }
 

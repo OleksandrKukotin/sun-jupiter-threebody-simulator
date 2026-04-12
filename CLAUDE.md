@@ -54,17 +54,24 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 
 - `PhysicsConstants.MU = 9.5368e-4` (mass parameter μ)
 - `StateVector` is a record `(x, y, xDot, yDot)` with `toArray()`/`fromArray()` helpers
-- `JacobiConstant` is the only fully-implemented physics class; its tests in `JacobiConstantTest` serve as the correctness baseline
-- `CR3BPEquations` implements `FirstOrderDifferentialEquations` (Commons Math interface); once implemented it feeds into `StateVectorPropagator` which uses `DormandPrince853Integrator`
+- `JacobiConstant` and `CR3BPEquations` are fully implemented; `JacobiConstantTest` serves as the correctness baseline
+- `CR3BPEquations` implements `FirstOrderDifferentialEquations` (Commons Math); it feeds into `StateVectorPropagator` which uses `DormandPrince853Integrator`
+- `SimulationRequest` carries integrator tolerances (`absoluteTolerance`, `relativeTolerance`, `minStep`, `maxStep`) alongside the initial state and `duration`
 - L1/L2/L3 require Newton's method on the collinear quintic; L4/L5 are analytic at `(0.5−μ, ±√3/2)`
+- `CR3BPUtils` provides shared `distanceToSun` / `distanceToJupiter` helpers used across the physics package
+
+**Synodic frame body positions**: Sun (primary) at `(−μ, 0)`, Jupiter (secondary) at `(1−μ, 0)`.
 
 ## Implementation Status
 
-Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Implement in dependency order:
+Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Dependency order:
 
 1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
 2. `LagrangePointCalculator.computeAll` (issue #2) — no dependencies
-3. `StateVectorPropagator.propagate` (issue #3) — depends on #1 ✓
-4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` ✓
+3. `StateVectorPropagator.propagate` (issue #3) — depends on #1 ✓; constructor-injected with `CR3BPEquations` + `JacobiConstant`
+4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` ✓; constructor-injected with `JacobiConstant`
+5. `OrbitPresets` state vectors (issue #6) — placeholder `StateVector(0,0,0,0)` values need literature-validated initial conditions
 
-`CR3BPUtils` (same package) provides shared `distanceToSun` / `distanceToJupiter` static helpers used by both `JacobiConstant` and `CR3BPEquations`.
+## Collaboration Notes
+
+The user implements features; Claude's role is reviewing physics correctness, writing tests, and running the test suite.
