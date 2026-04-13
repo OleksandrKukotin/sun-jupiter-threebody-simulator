@@ -1,5 +1,6 @@
 package org.github.oleksandrkukotin.physics;
 
+import org.github.oleksandrkukotin.config.PhysicsConstants;
 import org.github.oleksandrkukotin.model.LagrangePoint;
 import org.springframework.stereotype.Component;
 
@@ -29,9 +30,23 @@ public class LagrangePointCalculator {
     }
 
     /** L1: between Sun and Jupiter. Found via Newton's method on the quintic. */
-    private LagrangePoint computeL1() {
-        LagrangePoint lp = new LagrangePoint();
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+    LagrangePoint computeL1() {
+        double mu = PhysicsConstants.MU;
+        double oneMu = PhysicsConstants.ONE_MINUS_MU;
+        double gamma = Math.pow(mu / 3.0, 1.0 / 3.0);
+        double x = oneMu - gamma;
+        for (int i = 0; i < 50; i++) {
+            double r1 = x + mu;
+            double r2 = oneMu - x;
+
+            double fx = x - oneMu / (r1 * r1) + mu / (r2 * r2);
+            double fpx = 1.0 + 2.0 * oneMu / (r1 * r1 * r1) + 2.0 * mu / (r2 * r2 * r2);
+
+            double dx = fx / fpx;
+            x -= dx;
+            if (Math.abs(dx) < 1e-12) break;
+        }
+        return new LagrangePoint("L1", x, 0.0);
     }
 
     /** L2: beyond Jupiter (opposite Sun). Found via Newton's method on the quintic. */
