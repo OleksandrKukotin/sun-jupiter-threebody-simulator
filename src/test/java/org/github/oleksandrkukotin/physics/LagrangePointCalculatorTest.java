@@ -45,4 +45,37 @@ class LagrangePointCalculatorTest {
         double fx = x - ONE_MU / (r1 * r1) + MU / (r2 * r2);
         assertEquals(0.0, fx, 1e-12);
     }
+
+    // --- L2 ---
+
+    @Test
+    void computeL2_liesOnXAxis() {
+        LagrangePoint l2 = calculator.computeL2();
+        assertEquals(0.0, l2.y(), 1e-15);
+    }
+
+    @Test
+    void computeL2_liesBeyondJupiter() {
+        LagrangePoint l2 = calculator.computeL2();
+        assertTrue(l2.x() > ONE_MU, "L2 must be to the right of Jupiter");
+        assertTrue(l2.x() < 1.1,    "L2 must be near Jupiter, not far downrange");
+    }
+
+    @Test
+    void computeL2_matchesKnownSunJupiterValue() {
+        // Literature value for Sun–Jupiter L2 ≈ 1.06883 in normalized units
+        LagrangePoint l2 = calculator.computeL2();
+        assertEquals(1.06883, l2.x(), 1e-4);
+    }
+
+    @Test
+    void computeL2_satisfiesEquilibriumCondition() {
+        // f(x) = x − (1−μ)/(x+μ)² − μ/(x−(1−μ))² = 0 at L2
+        LagrangePoint l2 = calculator.computeL2();
+        double x  = l2.x();
+        double r1 = x + MU;
+        double r2 = x - ONE_MU;
+        double fx = x - ONE_MU / (r1 * r1) - MU / (r2 * r2);
+        assertEquals(0.0, fx, 1e-12);
+    }
 }

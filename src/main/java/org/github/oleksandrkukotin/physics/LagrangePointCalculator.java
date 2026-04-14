@@ -50,9 +50,23 @@ public class LagrangePointCalculator {
     }
 
     /** L2: beyond Jupiter (opposite Sun). Found via Newton's method on the quintic. */
-    private LagrangePoint computeL2() {
-        // TODO (#2)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+    LagrangePoint computeL2() {
+        double mu = PhysicsConstants.MU;
+        double oneMu = PhysicsConstants.ONE_MINUS_MU;
+        double gamma = Math.pow(mu / 3.0, 1.0 / 3.0);
+        double x = oneMu + gamma;
+        for (int i = 0; i < 50; i++) {
+            double r1 = x + mu;
+            double r2 = x - oneMu;
+
+            double fx = x - oneMu / (r1 * r1) - mu / (r2 * r2);
+            double fpx = 1 + 2 * oneMu / (r1 * r1 * r1) + 2 * mu / (r2 * r2 * r2);
+
+            double dx = fx / fpx;
+            x -= dx;
+            if (Math.abs(dx) < 1e-12) break;
+        }
+        return new LagrangePoint("L2", x, 0.0);
     }
 
     /** L3: beyond Sun (opposite Jupiter). Found via Newton's method on the quintic. */
