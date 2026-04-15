@@ -78,4 +78,37 @@ class LagrangePointCalculatorTest {
         double fx = x - ONE_MU / (r1 * r1) - MU / (r2 * r2);
         assertEquals(0.0, fx, 1e-12);
     }
+
+    // --- L3 ---
+
+    @Test
+    void computeL3_liesOnXAxis() {
+        LagrangePoint l3 = calculator.computeL3();
+        assertEquals(0.0, l3.y(), 1e-15);
+    }
+
+    @Test
+    void computeL3_liesBeyondSunOppositeJupiter() {
+        LagrangePoint l3 = calculator.computeL3();
+        assertTrue(l3.x() < -MU, "L3 must be to the left of the Sun");
+        assertTrue(l3.x() > -1.1, "L3 must be near the Sun–Jupiter mirror distance");
+    }
+
+    @Test
+    void computeL3_matchesKnownSunJupiterValue() {
+        // Classical approximation: x_L3 ≈ −(1 + 5μ/12) ≈ −1.00039732 for Sun–Jupiter μ
+        LagrangePoint l3 = calculator.computeL3();
+        assertEquals(-1.00039732, l3.x(), 1e-4);
+    }
+
+    @Test
+    void computeL3_satisfiesEquilibriumCondition() {
+        // For x < −μ: f(x) = x + (1−μ)/(x+μ)² + μ/((1−μ)−x)² = 0 at L3
+        LagrangePoint l3 = calculator.computeL3();
+        double x  = l3.x();
+        double r1 = -(x + MU);
+        double r2 = ONE_MU - x;
+        double fx = x + ONE_MU / (r1 * r1) + MU / (r2 * r2);
+        assertEquals(0.0, fx, 1e-12);
+    }
 }

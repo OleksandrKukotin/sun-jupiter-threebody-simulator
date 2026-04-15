@@ -70,9 +70,22 @@ public class LagrangePointCalculator {
     }
 
     /** L3: beyond Sun (opposite Jupiter). Found via Newton's method on the quintic. */
-    private LagrangePoint computeL3() {
-        // TODO (#2)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+    LagrangePoint computeL3() {
+        double mu = PhysicsConstants.MU;
+        double oneMu = PhysicsConstants.ONE_MINUS_MU;
+        double x = -1.0 - 5.0 * mu / 12.0;
+        for (int i = 0; i < 50; i++) {
+            double r1 = -(x + mu);
+            double r2 = oneMu - x;
+
+            double fx = x + oneMu / (r1 * r1) + mu / (r2 * r2);
+            double fpx = 1.0 + 2.0 * oneMu / (r1 * r1 * r1) + 2.0 * mu / (r2 * r2 * r2);
+            double dx = fx / fpx;
+
+            x -= dx;
+            if (Math.abs(dx) < 1e-12) break;
+        }
+        return new LagrangePoint("L3", x, 0.0);
     }
 
     /** L4: leading equilateral point at (0.5 − μ, √3/2). */
