@@ -56,7 +56,7 @@ The simulator lets you explore:
 
 #### Phase 1 – Core Physics (In Progress)
 - [x] CR3BP dynamical model
-- [ ] Lagrange point calculator
+- [x] Lagrange point calculator (L1–L5 for Sun–Jupiter; Newton's method for collinear, analytic for triangular)
 - [ ] State vector propagation with adaptive step size
 - [x] Jacobi constant calculation
 - [ ] Zero-velocity curves visualization
