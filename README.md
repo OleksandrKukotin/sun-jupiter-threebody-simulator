@@ -55,10 +55,10 @@ The simulator lets you explore:
 ### Roadmap
 
 #### Phase 1 – Core Physics (In Progress)
-- [ ] CR3BP dynamical model
+- [x] CR3BP dynamical model
 - [ ] Lagrange point calculator
 - [ ] State vector propagation with adaptive step size
-- [ ] Jacobi constant calculation
+- [x] Jacobi constant calculation
 - [ ] Zero-velocity curves visualization
 - [ ] Preset tadpole and horseshoe orbit examples
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**CR3BP Explorer** — a Java/Spring Boot backend + Angular frontend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points. Currently in early MVP phase: the repo contains an empty Gradle skeleton; the real implementation is being built out.
+**CR3BP Explorer** — a Java/Spring Boot backend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points. The Angular frontend (`frontend/`) is not yet scaffolded.
 
 ## Build & Run Commands
 
@@ -16,31 +16,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test
 
 # Run a single test class
-./gradlew test --tests "org.github.oleksandrkukotin.SomeTest"
+./gradlew test --tests "org.github.oleksandrkukotin.physics.JacobiConstantTest"
 
-# Run the application (once Spring Boot is wired in)
+# Run the application
 ./gradlew bootRun
 ```
 
 ## Architecture
 
-The project is a planned full-stack application:
+**Package root**: `org.github.oleksandrkukotin`
 
-- **Backend**: Java 21 + Spring Boot 3, built with Gradle (Kotlin DSL). Package root: `org.github.oleksandrkukotin`. Math core uses Apache Commons Math for high-order numerical integration of CR3BP equations.
-- **Frontend**: Angular 18+ with Chart.js (2D trajectory visualization) and Three.js (planned 3D). Lives in a separate `frontend/` directory (not yet scaffolded).
-- **REST API**: Spring Boot exposes endpoints for simulation control; Angular consumes them.
+```
+config/      PhysicsConstants (μ, 1−μ as static finals)
+model/       Records: StateVector, SimulationRequest, TrajectoryResult,
+             TrajectoryPoint, LagrangePoint, OrbitPreset
+physics/     CR3BPEquations, LagrangePointCalculator, StateVectorPropagator,
+             ZeroVelocityCurve, JacobiConstant
+presets/     OrbitPresets (named initial condition library)
+api/         SimulationController, PresetController (REST endpoints)
+```
 
-### Physics domain
+**REST API surface:**
+- `POST /api/simulation/propagate` — run trajectory from `SimulationRequest`
+- `GET  /api/simulation/lagrange-points` — returns L1–L5 in synodic coords
+- `GET  /api/simulation/zero-velocity-curve` — forbidden region boolean grid
+- `GET  /api/presets` — list named orbit presets
+- `POST /api/presets/{id}/run` — run a preset through the propagator
 
-The simulator works in the **rotating (synodic) reference frame** of the CR3BP. Key quantities:
-- Mass parameter μ ≈ 9.5368×10⁻⁴ (Sun–Jupiter)
-- Lagrange points L1–L5 calculated analytically/numerically
-- State vector propagation with adaptive step size
-- Jacobi constant conservation as a correctness check
-- Zero-velocity curves separate accessible from forbidden regions
+**Key dependencies** (build.gradle.kts):
+- `spring-boot-starter-web` — REST layer
+- `commons-math3:3.6.1` — ODE integration (`DormandPrince853Integrator`, `FirstOrderDifferentialEquations`)
+- `spring-boot-starter-test` — JUnit Jupiter + Spring test support
 
-Planned orbit families: tadpole orbits (around L4/L5), horseshoe orbits, and eventually invariant manifolds for low-energy transfers.
+## Physics Domain
 
-## Dependencies (build.gradle.kts)
+All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separation, time = Jupiter orbital period / 2π.
 
-Currently only JUnit Jupiter (via `junit-bom:6.0.0`) for testing. Spring Boot, Apache Commons Math, and other dependencies will need to be added as implementation proceeds.
+- `PhysicsConstants.MU = 9.5368e-4` (mass parameter μ)
+- `StateVector` is a record `(x, y, xDot, yDot)` with `toArray()`/`fromArray()` helpers
+- `JacobiConstant` and `CR3BPEquations` are fully implemented; `JacobiConstantTest` serves as the correctness baseline
+- `CR3BPEquations` implements `FirstOrderDifferentialEquations` (Commons Math); it feeds into `StateVectorPropagator` which uses `DormandPrince853Integrator`
+- `SimulationRequest` carries integrator tolerances (`absoluteTolerance`, `relativeTolerance`, `minStep`, `maxStep`) alongside the initial state and `duration`
+- L1/L2/L3 require Newton's method on the collinear quintic; L4/L5 are analytic at `(0.5−μ, ±√3/2)`
+- `CR3BPUtils` provides shared `distanceToSun` / `distanceToJupiter` helpers used across the physics package
+
+**Synodic frame body positions**: Sun (primary) at `(−μ, 0)`, Jupiter (secondary) at `(1−μ, 0)`.
+
+## Implementation Status
+
+Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Dependency order:
+
+1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
+2. `LagrangePointCalculator.computeAll` (issue #2) — no dependencies
+3. `StateVectorPropagator.propagate` (issue #3) — depends on #1 ✓; constructor-injected with `CR3BPEquations` + `JacobiConstant`
+4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` ✓; constructor-injected with `JacobiConstant`
+5. `OrbitPresets` state vectors (issue #6) — placeholder `StateVector(0,0,0,0)` values need literature-validated initial conditions
+
+## Collaboration Notes
+
+The user implements features; Claude's role is reviewing physics correctness, writing tests, and running the test suite.
