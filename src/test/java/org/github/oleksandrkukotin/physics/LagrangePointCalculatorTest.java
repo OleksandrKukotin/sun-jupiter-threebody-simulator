@@ -111,4 +111,60 @@ class LagrangePointCalculatorTest {
         double fx = x + ONE_MU / (r1 * r1) + MU / (r2 * r2);
         assertEquals(0.0, fx, 1e-12);
     }
+
+    // --- L4 ---
+
+    @Test
+    void computeL4_hasExpectedCoordinates() {
+        LagrangePoint l4 = calculator.computeL4();
+        assertEquals(0.5 - MU, l4.x(), 1e-15);
+        assertEquals(Math.sqrt(3) / 2.0, l4.y(), 1e-15);
+    }
+
+    @Test
+    void computeL4_isEquidistantFromBothPrimaries() {
+        // L4 forms an equilateral triangle with Sun (−μ, 0) and Jupiter (1−μ, 0);
+        // both distances must equal the primaries' unit separation.
+        LagrangePoint l4 = calculator.computeL4();
+        double dSun     = Math.hypot(l4.x() + MU,     l4.y());
+        double dJupiter = Math.hypot(l4.x() - ONE_MU, l4.y());
+        assertEquals(1.0, dSun,     1e-15);
+        assertEquals(1.0, dJupiter, 1e-15);
+    }
+
+    @Test
+    void computeL4_liesAboveXAxis() {
+        assertTrue(calculator.computeL4().y() > 0.0, "L4 is the leading (y > 0) triangular point");
+    }
+
+    // --- L5 ---
+
+    @Test
+    void computeL5_hasExpectedCoordinates() {
+        LagrangePoint l5 = calculator.computeL5();
+        assertEquals(0.5 - MU, l5.x(), 1e-15);
+        assertEquals(-Math.sqrt(3) / 2.0, l5.y(), 1e-15);
+    }
+
+    @Test
+    void computeL5_isEquidistantFromBothPrimaries() {
+        LagrangePoint l5 = calculator.computeL5();
+        double dSun     = Math.hypot(l5.x() + MU,     l5.y());
+        double dJupiter = Math.hypot(l5.x() - ONE_MU, l5.y());
+        assertEquals(1.0, dSun,     1e-15);
+        assertEquals(1.0, dJupiter, 1e-15);
+    }
+
+    @Test
+    void computeL5_liesBelowXAxis() {
+        assertTrue(calculator.computeL5().y() < 0.0, "L5 is the trailing (y < 0) triangular point");
+    }
+
+    @Test
+    void computeL4AndL5_areMirrorImagesAcrossXAxis() {
+        LagrangePoint l4 = calculator.computeL4();
+        LagrangePoint l5 = calculator.computeL5();
+        assertEquals(l4.x(),  l5.x(), 1e-15);
+        assertEquals(l4.y(), -l5.y(), 1e-15);
+    }
 }

@@ -89,14 +89,12 @@ public class LagrangePointCalculator {
     }
 
     /** L4: leading equilateral point at (0.5 − μ, √3/2). */
-    private LagrangePoint computeL4() {
-        // TODO (#2)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+    LagrangePoint computeL4() {
+        return new LagrangePoint("L4", 0.5 - PhysicsConstants.MU, Math.sqrt(3) / 2.0);
     }
 
     /** L5: trailing equilateral point at (0.5 − μ, −√3/2). */
-    private LagrangePoint computeL5() {
-        // TODO (#2)
-        throw new UnsupportedOperationException("Not yet implemented — see issue #2");
+    LagrangePoint computeL5() {
+        return new LagrangePoint("L5", 0.5 - PhysicsConstants.MU, -Math.sqrt(3) / 2);
     }
 }
