@@ -67,9 +67,9 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Dependency order:
 
 1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
-2. `LagrangePointCalculator.computeAll` (issue #2) — no dependencies
-3. `StateVectorPropagator.propagate` (issue #3) — depends on #1 ✓; constructor-injected with `CR3BPEquations` + `JacobiConstant`
-4. `ZeroVelocityCurve.computeForbiddenRegion` (issue #5) — depends on `JacobiConstant.effectivePotential` ✓; constructor-injected with `JacobiConstant`
+2. ~~`LagrangePointCalculator.computeAll` / L1–L5 (issue #2)~~ — **done**
+3. ~~`StateVectorPropagator.propagate` (issue #3)~~ — **done** (DormandPrince853 + StepHandler recording per-step Jacobi)
+4. ~~`ZeroVelocityCurve.computeForbiddenRegion` (issue #5)~~ — **done**
 5. `OrbitPresets` state vectors (issue #6) — placeholder `StateVector(0,0,0,0)` values need literature-validated initial conditions
 
 ## Collaboration Notes

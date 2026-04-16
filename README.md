@@ -56,10 +56,10 @@ The simulator lets you explore:
 
 #### Phase 1 – Core Physics (In Progress)
 - [x] CR3BP dynamical model
-- [ ] Lagrange point calculator
-- [ ] State vector propagation with adaptive step size
+- [x] Lagrange point calculator
+- [x] State vector propagation with adaptive step size
 - [x] Jacobi constant calculation
-- [ ] Zero-velocity curves visualization
+- [x] Zero-velocity curves visualization
 - [ ] Preset tadpole and horseshoe orbit examples
 
 #### Phase 2 – Web Application

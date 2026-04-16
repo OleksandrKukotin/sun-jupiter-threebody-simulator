@@ -34,8 +34,17 @@ public class ZeroVelocityCurve {
                                               double xMin, double xMax,
                                               double yMin, double yMax,
                                               int resolution) {
-        // TODO (#5): For each grid cell, evaluate 2 * jacobiConstant.effectivePotential(x, y)
-        // and compare to jacobiC. Mark as forbidden where 2Ω < C.
-        throw new UnsupportedOperationException("Not yet implemented — see issue #5");
+        boolean[][] grid = new boolean[resolution][resolution];
+        double dx = (xMax - xMin) / (resolution - 1);
+        double dy = (yMax - yMin) / (resolution - 1);
+
+        for (int i = 0; i < resolution; i++) {
+            double x = xMin + i * dx;
+            for (int j = 0; j < resolution; j++) {
+                double y = yMin + j * dy;
+                grid[i][j] = 2.0 * jacobiConstant.effectivePotential(x, y) < jacobiC;
+            }
+        }
+        return grid;
     }
 }
