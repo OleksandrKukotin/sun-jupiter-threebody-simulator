@@ -1,8 +1,17 @@
 package org.github.oleksandrkukotin.physics;
 
+import org.apache.commons.math3.exception.MaxCountExceededException;
+import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator;
+import org.apache.commons.math3.ode.sampling.StepHandler;
+import org.apache.commons.math3.ode.sampling.StepInterpolator;
 import org.github.oleksandrkukotin.model.SimulationRequest;
+import org.github.oleksandrkukotin.model.StateVector;
+import org.github.oleksandrkukotin.model.TrajectoryPoint;
 import org.github.oleksandrkukotin.model.TrajectoryResult;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Propagates a CR3BP state vector forward in time using an adaptive step-size ODE integrator.
@@ -30,9 +39,29 @@ public class StateVectorPropagator {
      * @return full trajectory with per-step Jacobi constant values
      */
     public TrajectoryResult propagate(SimulationRequest request) {
-        // TODO (#3): Set up DormandPrince853Integrator with request tolerances,
-        // attach a StepHandler that records TrajectoryPoints (state + jacobiConstant),
-        // integrate from t=0 to t=request.duration(), and return a TrajectoryResult.
-        throw new UnsupportedOperationException("Not yet implemented — see issue #3");
+        DormandPrince853Integrator integrator = new DormandPrince853Integrator(
+                request.minStep(), request.maxStep(),
+                request.absoluteTolerance(), request.relativeTolerance());
+
+        List<TrajectoryPoint> points = new ArrayList<>();
+
+        integrator.addStepHandler(new StepHandler() {
+            @Override
+            public void init(double t0, double[] y0, double t) {}
+            @Override
+            public void handleStep(StepInterpolator interpolator, boolean isLast) throws MaxCountExceededException {
+                double t = interpolator.getCurrentTime();
+                StateVector stateVector = StateVector.fromArray(interpolator.getInterpolatedState());
+                points.add(new TrajectoryPoint(t, stateVector, jacobiConstant.compute(stateVector)));
+            }
+        });
+
+        double[] y0 = request.initialState().toArray();
+        double[] yOut = new double[4];
+        integrator.integrate(equations, 0.0, y0, request.duration(), yOut);
+
+        double cInitial = jacobiConstant.compute(request.initialState());
+        double cFinal = points.get(points.size() - 1).jacobiConstant();
+        return new TrajectoryResult(points, cInitial, cFinal);
     }
 }
