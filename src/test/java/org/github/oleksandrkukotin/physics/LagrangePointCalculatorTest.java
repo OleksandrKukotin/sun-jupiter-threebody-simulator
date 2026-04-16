@@ -5,6 +5,8 @@ import org.github.oleksandrkukotin.model.LagrangePoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class LagrangePointCalculatorTest {
@@ -158,6 +160,26 @@ class LagrangePointCalculatorTest {
     @Test
     void computeL5_liesBelowXAxis() {
         assertTrue(calculator.computeL5().y() < 0.0, "L5 is the trailing (y < 0) triangular point");
+    }
+
+    // --- computeAll ---
+
+    @Test
+    void computeAll_returnsFivePointsInOrderL1ThroughL5() {
+        List<LagrangePoint> all = calculator.computeAll();
+        assertEquals(5, all.size());
+
+        LagrangePoint[] expected = {
+                calculator.computeL1(), calculator.computeL2(), calculator.computeL3(),
+                calculator.computeL4(), calculator.computeL5()
+        };
+        String[] names = {"L1", "L2", "L3", "L4", "L5"};
+        for (int i = 0; i < 5; i++) {
+            LagrangePoint actual = all.get(i);
+            assertEquals(names[i],       actual.name());
+            assertEquals(expected[i].x(), actual.x(), 1e-15);
+            assertEquals(expected[i].y(), actual.y(), 1e-15);
+        }
     }
 
     @Test

@@ -16,6 +16,12 @@ import org.springframework.stereotype.Component;
  * </pre>
  * where r₁ = distance to Sun, r₂ = distance to Jupiter.
  *
+ * <p><b>Precondition:</b> the trajectory must not pass through either primary.
+ * As r₁ or r₂ → 0, the 1/r³ terms diverge and the integrator will produce
+ * Inf/NaN. Callers are responsible for choosing initial conditions, a duration,
+ * and integrator tolerances that keep the state away from the singularities;
+ * collisions are not guarded here to avoid masking physically meaningful blow-up.
+ *
  * @see <a href="https://github.com/OleksandrKukotin/sun-jupiter-threebody-simulator/issues/1">Issue #1</a>
  */
 @Component

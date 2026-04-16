@@ -4,7 +4,6 @@ import org.github.oleksandrkukotin.config.PhysicsConstants;
 import org.github.oleksandrkukotin.model.LagrangePoint;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,13 +19,7 @@ public class LagrangePointCalculator {
 
     /** Returns all five Lagrange points in normalized synodic coordinates. */
     public List<LagrangePoint> computeAll() {
-        List<LagrangePoint> points = new ArrayList();
-        points.add(computeL1());
-        points.add(computeL2());
-        points.add(computeL3());
-        points.add(computeL4());
-        points.add(computeL5());
-        return points;
+        return List.of(computeL1(), computeL2(), computeL3(), computeL4(), computeL5());
     }
 
     /** L1: between Sun and Jupiter. Found via Newton's method on the quintic. */

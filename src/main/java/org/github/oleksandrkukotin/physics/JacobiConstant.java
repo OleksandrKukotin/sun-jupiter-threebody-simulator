@@ -1,7 +1,6 @@
 package org.github.oleksandrkukotin.physics;
 
 import org.github.oleksandrkukotin.config.PhysicsConstants;
-import org.github.oleksandrkukotin.exception.IllegalStateDataException;
 import org.github.oleksandrkukotin.model.StateVector;
 import org.springframework.stereotype.Component;
 
@@ -20,12 +19,8 @@ public class JacobiConstant {
 
     /** Computes the Jacobi constant C for the given state vector. */
     public double compute(StateVector state) {
-        try {
-            return 2 * effectivePotential(state.x(), state.y())
-                    - (state.xDot() * state.xDot() + state.yDot() * state.yDot());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateDataException("Input StateVector is wrong or empty");
-        }
+        return 2 * effectivePotential(state.x(), state.y())
+                - (state.xDot() * state.xDot() + state.yDot() * state.yDot());
     }
 
     public double effectivePotential(double x, double y) {
