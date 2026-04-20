@@ -54,10 +54,11 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 
 - `PhysicsConstants.MU = 9.5368e-4` (mass parameter μ)
 - `StateVector` is a record `(x, y, xDot, yDot)` with `toArray()`/`fromArray()` helpers
-- `JacobiConstant` and `CR3BPEquations` are fully implemented; `JacobiConstantTest` serves as the correctness baseline
-- `CR3BPEquations` implements `FirstOrderDifferentialEquations` (Commons Math); it feeds into `StateVectorPropagator` which uses `DormandPrince853Integrator`
+- `JacobiConstant`, `CR3BPEquations`, and `LagrangePointCalculator` (all five points) are fully implemented; `JacobiConstantTest` and `LagrangePointCalculatorTest` serve as the correctness baseline
+- `CR3BPEquations` implements `FirstOrderDifferentialEquations` (Commons Math); it feeds into `StateVectorPropagator` which uses `DormandPrince853Integrator`. Its Javadoc documents a non-collision precondition: trajectories must not pass through either primary (r₁/r₂ → 0 diverges)
 - `SimulationRequest` carries integrator tolerances (`absoluteTolerance`, `relativeTolerance`, `minStep`, `maxStep`) alongside the initial state and `duration`
-- L1/L2/L3 require Newton's method on the collinear quintic; L4/L5 are analytic at `(0.5−μ, ±√3/2)`
+- L1/L2/L3 use Newton's method on the collinear quintic (converges to 1e-12 in well under 50 iterations); L4/L5 are analytic at `(0.5−μ, ±√3/2)`
+- `LagrangePointCalculator.computeAll()` returns an immutable `List.of(L1, L2, L3, L4, L5)`
 - `CR3BPUtils` provides shared `distanceToSun` / `distanceToJupiter` helpers used across the physics package
 
 **Synodic frame body positions**: Sun (primary) at `(−μ, 0)`, Jupiter (secondary) at `(1−μ, 0)`.
