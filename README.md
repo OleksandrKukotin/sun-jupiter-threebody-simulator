@@ -54,13 +54,13 @@ The simulator lets you explore:
 
 ### Roadmap
 
-#### Phase 1 – Core Physics (In Progress)
+#### Phase 1 – Core Physics (Complete)
 - [x] CR3BP dynamical model
-- [x] Lagrange point calculator (L1–L5 for Sun–Jupiter; Newton's method for collinear, analytic for triangular)
-- [ ] State vector propagation with adaptive step size
+- [x] Lagrange point calculator
+- [x] State vector propagation with adaptive step size
 - [x] Jacobi constant calculation
-- [ ] Zero-velocity curves visualization
-- [ ] Preset tadpole and horseshoe orbit examples
+- [x] Zero-velocity curves visualization
+- [x] Preset tadpole and horseshoe orbit examples
 
 #### Phase 2 – Web Application
 - [ ] Responsive Angular UI with reactive forms
