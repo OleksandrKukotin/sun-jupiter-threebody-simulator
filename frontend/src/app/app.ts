@@ -1,35 +1,21 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
-import {ApiService} from './api/api.service';
-import {LagrangePoint, OrbitPreset} from './api/models';
+import {Component, signal} from '@angular/core';
+import {PresetList} from './preset-list/preset-list';
+import {TrajectoryPlot} from './trajectory-plot/trajectory-plot';
+import {OrbitPreset, TrajectoryResult} from './api/models';
+import {DecimalPipe} from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [PresetList, TrajectoryPlot, DecimalPipe],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
-  private readonly api = inject(ApiService);
+export class App {
+  protected readonly selectedPreset = signal<OrbitPreset | null>(null);
+  protected readonly trajectoryResult = signal<TrajectoryResult | null>(null);
 
-  protected readonly title = signal('frontend');
-  protected readonly presets = signal<OrbitPreset[]>([]);
-  protected readonly lagrangePoints = signal<LagrangePoint[]>([]);
-
-  ngOnInit() {
-    this.api.listPresets().subscribe({
-      next: (p) => {
-        console.log('presets', p);
-        this.presets.set(p);
-      },
-      error: (e) => console.error('presets failed', e)
-    });
-    this.api.getLagrangePoints().subscribe({
-      next: (l) => {
-        console.log('Lagrange', l);
-        this.lagrangePoints.set(l)
-      },
-      error: (e) => console.error('Lagrange failed', e)
-    });
+  onPresetRun(event: { preset: OrbitPreset; result: TrajectoryResult }): void {
+    this.selectedPreset.set(event.preset);
+    this.trajectoryResult.set(event.result);
   }
 }

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**CR3BP Explorer** — a Java/Spring Boot backend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points. The Angular frontend (`frontend/`) is not yet scaffolded.
+**CR3BP Explorer** — a Java/Spring Boot backend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points, paired with an Angular frontend (`frontend/`) that consumes its REST API.
 
 ## Build & Run Commands
 
@@ -21,6 +21,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run the application
 ./gradlew bootRun
 ```
+
+## Frontend
+
+Angular app in `frontend/`. During development it runs on `:4200` and proxies `/api/*` to Spring on `:8080` via `frontend/proxy.conf.json` (wired into `angular.json` under both the dev and prod `serve` configurations), so both `./gradlew bootRun` and `ng serve` must be running.
+
+```bash
+cd frontend
+npm install
+npm start       # ng serve with proxy
+npm test
+npm run build
+```
+
+- `src/app/api/models.ts` — TypeScript interfaces mirroring the Java records in `org.github.oleksandrkukotin.model` field-for-field (Jackson serializes records by component name)
+- `src/app/api/api.service.ts` — `ApiService` wrapping every backend endpoint; all calls use the relative `/api` prefix so the proxy handles routing
+- `HttpClient` is provided via `provideHttpClient()` in `app.config.ts`
 
 ## Architecture
 
@@ -63,15 +79,12 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 
 **Synodic frame body positions**: Sun (primary) at `(−μ, 0)`, Jupiter (secondary) at `(1−μ, 0)`.
 
-## Implementation Status
+## Phase 1 Implementation Notes
 
-Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Dependency order:
+Phase 1 (core physics) is complete. Non-obvious details worth knowing:
 
-1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
-2. ~~`LagrangePointCalculator.computeAll` / L1–L5 (issue #2)~~ — **done**
-3. ~~`StateVectorPropagator.propagate` (issue #3)~~ — **done** (DormandPrince853 + StepHandler recording per-step Jacobi)
-4. ~~`ZeroVelocityCurve.computeForbiddenRegion` (issue #5)~~ — **done**
-5. ~~`OrbitPresets` state vectors (issue #6)~~ — **done** (tadpole L4/L5 seeded at triangular points + 3e-3 radial offset; horseshoe at `(-1.00045, 0, 0, 0.0012)`; Jacobi constants computed at class-load from the seed state)
+- `StateVectorPropagator` uses DormandPrince853 with a StepHandler that records per-step Jacobi values alongside each trajectory point
+- Tadpole presets (L4/L5) are seeded at the triangular points with a 3e-3 radial offset; horseshoe uses `(-1.00045, 0, 0, 0.0012)`; expected Jacobi constants are computed at class-load from the seed state
 
 ## Collaboration Notes
 

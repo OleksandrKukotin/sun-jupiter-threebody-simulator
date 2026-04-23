@@ -1,0 +1,49 @@
+.preset-list {
+  padding: 1rem;
+  font-family: system-ui, sans-serif;
+}
+
+.preset-list h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+.preset-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preset-list li {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.preset-list li:hover {
+  background: #f5f5f5;
+}
+
+.preset-list li.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.preset-list li p {
+  margin: 0.25rem 0;
+  color: #555;
+  font-size: 0.875rem;
+}
+
+.preset-list li small {
+  color: #888;
+  font-family: monospace;
+}
+
+.error { color: #b91c1c; }
+.loading { color: #666; font-style: italic; }

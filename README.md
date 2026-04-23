@@ -63,10 +63,12 @@ The simulator lets you explore:
 - [x] Preset tadpole and horseshoe orbit examples
 
 #### Phase 2 – Web Application
-- [ ] Responsive Angular UI with reactive forms
-- [ ] 2D trajectory plotting (Chart.js or D3.js)
+- [x] Angular frontend scaffolded and wired to the backend via dev proxy
+- [x] Preset browser with on-demand simulation runs
+- [x] 2D trajectory plotting (Plotly.js)
+- [ ] Responsive UI with reactive forms for custom initial conditions
+- [ ] Lagrange points and zero-velocity curve overlays
 - [ ] 3D visualization (Three.js planned)
-- [ ] Real-time / on-demand simulation runner
 - [ ] Export functionality (JSON, CSV, PNG)
 
 #### Phase 3 – Advanced Astrodynamics
@@ -88,7 +90,7 @@ The simulator lets you explore:
 - **Build Tool**: Gradle (Kotlin DSL recommended)
 - **Math Core**: Apache Commons Math
 - **Frontend**: Angular 18+
-- **Visualization**: Chart.js (2D) + Three.js (planned for 3D)
+- **Visualization**: Plotly.js (2D) + Three.js (planned for 3D)
 - **Optional**: Orekit (future high-precision astrodynamics)
 
 ## Getting Started
@@ -101,6 +103,19 @@ The simulator lets you explore:
 ### Backend
 
 ```bash
-git clone https://github.com/sashko_master/sun-jupiter-threebody-simulator.git
-cd sun-jupiter-threebody-simulator/backend
+git clone https://github.com/OleksandrKukotin/sun-jupiter-threebody-simulator.git
+cd sun-jupiter-threebody-simulator
 ./gradlew bootRun
+```
+
+Spring Boot starts on `http://localhost:8080` and exposes the REST API under `/api/*`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Angular dev server runs on `http://localhost:4200` and proxies `/api/*` to Spring via `frontend/proxy.conf.json`, so both processes must be running for the UI to load presets and trajectories.

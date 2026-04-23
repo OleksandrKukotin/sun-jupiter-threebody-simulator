@@ -1,0 +1,23 @@
+<div class="preset-list">
+  <h2>Orbit Presets</h2>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <ul>
+    @for (preset of presets(); track preset.id) {
+      <li
+        [class.selected]="selectedId() === preset.id"
+        (click)="select(preset)">
+        <strong>{{ preset.name }}</strong>
+        <p>{{ preset.description }}</p>
+        <small>C = {{ preset.expectedJacobiConstant | number:'1.4-4' }} · T = {{ preset.duration }}</small>
+      </li>
+    }
+  </ul>
+
+  @if (loading()) {
+    <p class="loading">Running simulation…</p>
+  }
+</div>
