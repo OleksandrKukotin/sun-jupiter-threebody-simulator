@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import Plotly from 'plotly.js-dist-min';
-import {TrajectoryResult} from '../api/models';
+import {LagrangePoint, TrajectoryResult} from '../api/models';
 
 const MU = 9.5368e-4;
 
@@ -33,26 +33,28 @@ const MU = 9.5368e-4;
 })
 export class TrajectoryPlot implements AfterViewInit, OnDestroy {
   readonly result = input.required<TrajectoryResult>();
+  readonly lagrangePoints = input<LagrangePoint[]>([]);
   private readonly plotEl = viewChild.required<ElementRef<HTMLDivElement>>('plot');
   private initialized = false;
 
   constructor() {
     effect(() => {
       const r = this.result();
-      if (this.initialized && r) this.render(r);
+      const pts = this.lagrangePoints();
+      if (this.initialized && r) this.render(r, pts);
     });
   }
 
   ngAfterViewInit(): void {
     this.initialized = true;
-    this.render(this.result());
+    this.render(this.result(), this.lagrangePoints());
   }
 
   ngOnDestroy(): void {
     if (this.initialized) Plotly.purge(this.plotEl().nativeElement);
   }
 
-  private render(result: TrajectoryResult): void {
+  private render(result: TrajectoryResult, lagrangePoints: LagrangePoint[]): void {
     const xs = result.points.map(p => p.state.x);
     const ys = result.points.map(p => p.state.y);
 
@@ -95,6 +97,19 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
       showlegend: true,
       hovermode: 'closest'
     };
+
+    if (lagrangePoints.length > 0) {
+      data.push({
+        type: 'scatter',
+        mode: 'text+markers',
+        x: lagrangePoints.map(p => p.x),
+        y: lagrangePoints.map(p => p.y),
+        text: lagrangePoints.map(p => p.name),
+        textposition: 'top right',
+        marker: {color: '#10b981', size: 8, symbol: 'x'},
+        textfont: {size: 11, color: '#065f46'}
+      })
+    }
 
     Plotly.react(this.plotEl().nativeElement, data, layout, {responsive: true});
   }
