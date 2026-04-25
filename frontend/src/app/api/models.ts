@@ -40,3 +40,11 @@ export interface OrbitPreset {
   duration: number;
   expectedJacobiConstant: number;
 }
+
+export interface ZeroVelocityGrid {
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+  forbidden: boolean[][];
+}

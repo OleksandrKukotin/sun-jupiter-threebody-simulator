@@ -13,7 +13,10 @@
           C_f = {{ result.finalJacobiConstant | number:'1.6-6' }}
         </p>
       </header>
-      <app-trajectory-plot [result]="result" [lagrangePoints]="lagrangePoints()"/>
+      <app-trajectory-plot
+        [result]="result"
+        [lagrangePoints]="lagrangePoints()"
+        [zvcGrid]="zvcGrig()"/>
     } @else {
       <p class="empty-state">Select a preset to run a simulation.</p>
     }
