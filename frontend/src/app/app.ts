@@ -1,13 +1,14 @@
 import {Component, inject, signal} from '@angular/core';
 import {PresetList} from './preset-list/preset-list';
 import {TrajectoryPlot} from './trajectory-plot/trajectory-plot';
+import {CustomRun} from './custom-run/custom-run';
 import {LagrangePoint, OrbitPreset, TrajectoryResult, ZeroVelocityGrid} from './api/models';
 import {DecimalPipe} from '@angular/common';
 import {ApiService} from './api/api.service';
 
 @Component({
   selector: 'app-root',
-  imports: [PresetList, TrajectoryPlot, DecimalPipe],
+  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -28,10 +29,19 @@ export class App {
 
   onPresetRun(event: { preset: OrbitPreset; result: TrajectoryResult }): void {
     this.selectedPreset.set(event.preset);
-    this.trajectoryResult.set(event.result);
+    this.applyResult(event.result);
+  }
+
+  onCustomRun(result: TrajectoryResult): void {
+    this.selectedPreset.set(null);
+    this.applyResult(result);
+  }
+
+  private applyResult(result: TrajectoryResult): void {
+    this.trajectoryResult.set(result);
     this.zvcGrig.set(null);
 
-    const c = event.result.initialJacobiConstant;
+    const c = result.initialJacobiConstant;
     const bounds = {xMin: -1.5, xMax: 1.5, yMin: -1.5, yMax: 1.5, resolution: 200};
     this.api.getZeroVelocity(c, bounds).subscribe({
       next: (forbidden) => this.zvcGrig.set({...bounds, forbidden}),

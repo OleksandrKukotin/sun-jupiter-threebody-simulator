@@ -67,7 +67,7 @@ The simulator lets you explore:
 - [x] Preset browser with on-demand simulation runs
 - [x] 2D trajectory plotting (Plotly.js)
 - [ ] Responsive UI with reactive forms for custom initial conditions
-- [ ] Lagrange points and zero-velocity curve overlays
+- [x] Lagrange points and zero-velocity curve overlays
 - [ ] 3D visualization (Three.js planned)
 - [ ] Export functionality (JSON, CSV, PNG)
 

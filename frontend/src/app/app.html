@@ -1,12 +1,13 @@
 <main class="app-shell">
   <aside class="sidebar">
     <app-preset-list (presetRun)="onPresetRun($event)"/>
+    <app-custom-run [preset]="selectedPreset()" (customRun)="onCustomRun($event)"/>
   </aside>
 
   <section class="plot-pane">
     @if (trajectoryResult(); as result) {
       <header class="plot-header">
-        <h3>{{ selectedPreset()?.name }}</h3>
+        <h3>{{ selectedPreset()?.name ?? 'Custom run' }}</h3>
         <p>
           {{ result.points.length }} points ·
           C₀ = {{ result.initialJacobiConstant | number:'1.6-6' }} ·
