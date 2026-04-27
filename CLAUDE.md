@@ -37,6 +37,11 @@ npm run build
 - `src/app/api/models.ts` — TypeScript interfaces mirroring the Java records in `org.github.oleksandrkukotin.model` field-for-field (Jackson serializes records by component name)
 - `src/app/api/api.service.ts` — `ApiService` wrapping every backend endpoint; all calls use the relative `/api` prefix so the proxy handles routing
 - `HttpClient` is provided via `provideHttpClient()` in `app.config.ts`
+- `src/app/trajectory-plot/` — Plotly-based 2D plot; renders trajectory, Sun/Jupiter, Lagrange points, and ZVC heatmap. Backend ZVC grid is `[xIndex][yIndex]`; Plotly heatmap expects `z[rowY][colX]`, so the component transposes. Exposes `downloadPng(filename)` using `Plotly.downloadImage`
+- `src/app/preset-list/` — fetches `/api/presets`, runs a preset on click, emits `{preset, result}`
+- `src/app/custom-run/` — reactive form for arbitrary initial conditions; can pre-fill from a selected preset
+- `src/app/export/` — `ExportService` (JSON/CSV via Blob download) + `ExportControls` component; PNG is delegated up to `App` so the trajectory-plot's `downloadPng` can run with the Plotly graph div in scope
+- `src/types/plotly-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-dist-min` bundle
 
 ## Architecture
 

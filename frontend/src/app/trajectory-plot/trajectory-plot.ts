@@ -55,6 +55,16 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
     if (this.initialized) Plotly.purge(this.plotEl().nativeElement);
   }
 
+  downloadPng(filename = 'trajectory'): void {
+    if (!this.initialized) return;
+    Plotly.downloadImage(this.plotEl().nativeElement, {
+      format: 'png',
+      filename,
+      width: 1200,
+      height: 900
+    });
+  }
+
   private render(result: TrajectoryResult, lagrangePoints: LagrangePoint[], zvc: ZeroVelocityGrid | null): void {
     const data: Plotly.Data[] = [];
 

@@ -66,10 +66,10 @@ The simulator lets you explore:
 - [x] Angular frontend scaffolded and wired to the backend via dev proxy
 - [x] Preset browser with on-demand simulation runs
 - [x] 2D trajectory plotting (Plotly.js)
-- [ ] Responsive UI with reactive forms for custom initial conditions
+- [x] Responsive UI with reactive forms for custom initial conditions
 - [x] Lagrange points and zero-velocity curve overlays
+- [x] Export functionality (JSON, CSV, PNG)
 - [ ] 3D visualization (Three.js planned)
-- [ ] Export functionality (JSON, CSV, PNG)
 
 #### Phase 3 – Advanced Astrodynamics
 - [ ] Invariant manifolds and low-energy transfers
