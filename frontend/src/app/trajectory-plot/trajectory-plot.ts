@@ -7,7 +7,7 @@ import {
   input,
   viewChild
 } from '@angular/core';
-import Plotly from 'plotly.js-dist-min';
+import Plotly from 'plotly.js-cartesian-dist-min';
 import {LagrangePoint, TrajectoryResult, ZeroVelocityGrid} from '../api/models';
 
 const MU = 9.5368e-4;

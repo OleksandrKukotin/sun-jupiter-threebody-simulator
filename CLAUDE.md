@@ -41,7 +41,7 @@ npm run build
 - `src/app/preset-list/` — fetches `/api/presets`, runs a preset on click, emits `{preset, result}`
 - `src/app/custom-run/` — reactive form for arbitrary initial conditions; can pre-fill from a selected preset
 - `src/app/export/` — `ExportService` (JSON/CSV via Blob download) + `ExportControls` component; PNG is delegated up to `App` so the trajectory-plot's `downloadPng` can run with the Plotly graph div in scope
-- `src/types/plotly-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-dist-min` bundle
+- `src/types/plotly-cartesian-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-dist-min` bundle
 
 ## Architecture
 
