@@ -119,3 +119,17 @@ npm start
 ```
 
 Angular dev server runs on `http://localhost:4200` and proxies `/api/*` to Spring via `frontend/proxy.conf.json`, so both processes must be running for the UI to load presets and trajectories.
+
+### Docker (full stack)
+
+For a one-command deployment, the repo ships a multi-stage `Dockerfile` per service plus a `docker-compose.yml` that wires them together:
+
+```bash
+docker compose up --build
+```
+
+This produces two containers:
+- **`cr3bp-backend`** — Spring Boot on the internal compose network (not published to the host)
+- **`cr3bp-frontend`** — nginx serving the production Angular build and reverse-proxying `/api/*` to the backend
+
+Open `http://localhost:8090` to use the app. The backend is intentionally not exposed on the host; route through nginx or change the compose `expose` to `ports` if you want direct access for API testing.

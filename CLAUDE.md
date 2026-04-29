@@ -41,7 +41,11 @@ npm run build
 - `src/app/preset-list/` — fetches `/api/presets`, runs a preset on click, emits `{preset, result}`
 - `src/app/custom-run/` — reactive form for arbitrary initial conditions; can pre-fill from a selected preset
 - `src/app/export/` — `ExportService` (JSON/CSV via Blob download) + `ExportControls` component; PNG is delegated up to `App` so the trajectory-plot's `downloadPng` can run with the Plotly graph div in scope
-- `src/types/plotly-cartesian-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-dist-min` bundle
+- `src/types/plotly-cartesian-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-cartesian-dist-min` bundle (partial bundle, ~700 kB; chosen over the full `dist-min` to fit the Angular initial-bundle budget)
+
+## Docker
+
+`docker compose up --build` runs the full stack: backend (Spring Boot, internal-only) + frontend (nginx serving the Angular prod build, reverse-proxying `/api/*` to `backend:8080`). Frontend is published on host port `8090`. Per-service multi-stage Dockerfiles live at `Dockerfile` (root) and `frontend/Dockerfile`; nginx config at `frontend/nginx.conf`.
 
 ## Architecture
 
