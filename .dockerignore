@@ -1,0 +1,10 @@
+.git
+.gitignore
+.idea
+.vscode
+build
+out
+*.iml
+frontend
+README.md
+CLAUDE.md

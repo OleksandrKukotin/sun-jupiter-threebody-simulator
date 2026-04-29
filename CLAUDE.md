@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**CR3BP Explorer** — a Java/Spring Boot backend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points. The Angular frontend (`frontend/`) is not yet scaffolded.
+**CR3BP Explorer** — a Java/Spring Boot backend simulator for the Circular Restricted Three-Body Problem (CR3BP), focused on the Sun–Jupiter system and its Lagrange points, paired with an Angular frontend (`frontend/`) that consumes its REST API.
 
 ## Build & Run Commands
 
@@ -21,6 +21,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run the application
 ./gradlew bootRun
 ```
+
+## Frontend
+
+Angular app in `frontend/`. During development it runs on `:4200` and proxies `/api/*` to Spring on `:8080` via `frontend/proxy.conf.json` (wired into `angular.json` under both the dev and prod `serve` configurations), so both `./gradlew bootRun` and `ng serve` must be running.
+
+```bash
+cd frontend
+npm install
+npm start       # ng serve with proxy
+npm test
+npm run build
+```
+
+- `src/app/api/models.ts` — TypeScript interfaces mirroring the Java records in `org.github.oleksandrkukotin.model` field-for-field (Jackson serializes records by component name)
+- `src/app/api/api.service.ts` — `ApiService` wrapping every backend endpoint; all calls use the relative `/api` prefix so the proxy handles routing
+- `HttpClient` is provided via `provideHttpClient()` in `app.config.ts`
+- `src/app/trajectory-plot/` — Plotly-based 2D plot; renders trajectory, Sun/Jupiter, Lagrange points, and ZVC heatmap. Backend ZVC grid is `[xIndex][yIndex]`; Plotly heatmap expects `z[rowY][colX]`, so the component transposes. Exposes `downloadPng(filename)` using `Plotly.downloadImage`
+- `src/app/preset-list/` — fetches `/api/presets`, runs a preset on click, emits `{preset, result}`
+- `src/app/custom-run/` — reactive form for arbitrary initial conditions; can pre-fill from a selected preset
+- `src/app/export/` — `ExportService` (JSON/CSV via Blob download) + `ExportControls` component; PNG is delegated up to `App` so the trajectory-plot's `downloadPng` can run with the Plotly graph div in scope
+- `src/types/plotly-cartesian-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-cartesian-dist-min` bundle (partial bundle, ~700 kB; chosen over the full `dist-min` to fit the Angular initial-bundle budget)
+
+## Docker
+
+`docker compose up --build` runs the full stack: backend (Spring Boot, internal-only) + frontend (nginx serving the Angular prod build, reverse-proxying `/api/*` to `backend:8080`). Frontend is published on host port `8090`. Per-service multi-stage Dockerfiles live at `Dockerfile` (root) and `frontend/Dockerfile`; nginx config at `frontend/nginx.conf`.
 
 ## Architecture
 
@@ -63,15 +88,12 @@ All quantities use **normalized CR3BP units**: distance = Sun–Jupiter separati
 
 **Synodic frame body positions**: Sun (primary) at `(−μ, 0)`, Jupiter (secondary) at `(1−μ, 0)`.
 
-## Implementation Status
+## Phase 1 Implementation Notes
 
-Unimplemented stubs throw `UnsupportedOperationException` with a GitHub issue reference. Dependency order:
+Phase 1 (core physics) is complete. Non-obvious details worth knowing:
 
-1. ~~`CR3BPEquations.computeDerivatives` (issue #1)~~ — **done**
-2. ~~`LagrangePointCalculator.computeAll` / L1–L5 (issue #2)~~ — **done**
-3. ~~`StateVectorPropagator.propagate` (issue #3)~~ — **done** (DormandPrince853 + StepHandler recording per-step Jacobi)
-4. ~~`ZeroVelocityCurve.computeForbiddenRegion` (issue #5)~~ — **done**
-5. ~~`OrbitPresets` state vectors (issue #6)~~ — **done** (tadpole L4/L5 seeded at triangular points + 3e-3 radial offset; horseshoe at `(-1.00045, 0, 0, 0.0012)`; Jacobi constants computed at class-load from the seed state)
+- `StateVectorPropagator` uses DormandPrince853 with a StepHandler that records per-step Jacobi values alongside each trajectory point
+- Tadpole presets (L4/L5) are seeded at the triangular points with a 3e-3 radial offset; horseshoe uses `(-1.00045, 0, 0, 0.0012)`; expected Jacobi constants are computed at class-load from the seed state
 
 ## Collaboration Notes
 

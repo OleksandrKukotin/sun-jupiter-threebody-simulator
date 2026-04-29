@@ -1,0 +1,29 @@
+<main class="app-shell">
+  <aside class="sidebar">
+    <app-preset-list (presetRun)="onPresetRun($event)"/>
+    <app-custom-run [preset]="selectedPreset()" (customRun)="onCustomRun($event)"/>
+  </aside>
+
+  <section class="plot-pane">
+    @if (trajectoryResult(); as result) {
+      <header class="plot-header">
+        <h3>{{ selectedPreset()?.name ?? 'Custom run' }}</h3>
+        <p>
+          {{ result.points.length }} points ·
+          C₀ = {{ result.initialJacobiConstant | number:'1.6-6' }} ·
+          C_f = {{ result.finalJacobiConstant | number:'1.6-6' }}
+        </p>
+        <app-export-controls
+          [result]="result"
+          [filenameBase]="filenameBase()"
+          (pngRequested)="onPngRequested()"/>
+      </header>
+      <app-trajectory-plot
+        [result]="result"
+        [lagrangePoints]="lagrangePoints()"
+        [zvcGrid]="zvcGrid()"/>
+    } @else {
+      <p class="empty-state">Select a preset to run a simulation.</p>
+    }
+  </section>
+</main>

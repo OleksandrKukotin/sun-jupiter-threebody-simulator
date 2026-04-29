@@ -1,0 +1,33 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100dvh;
+  font-family: system-ui, sans-serif;
+}
+
+.sidebar {
+  border-right: 1px solid #e5e5e5;
+  overflow-y: auto;
+}
+
+.plot-pane {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.plot-header h3 {
+  margin: 0 0 0.25rem;
+}
+
+.plot-header p {
+  margin: 0 0 1rem;
+  color: #666;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  color: #888;
+  font-style: italic;
+}
