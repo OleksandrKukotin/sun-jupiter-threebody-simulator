@@ -68,7 +68,7 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
   private render(result: TrajectoryResult, lagrangePoints: LagrangePoint[], zvc: ZeroVelocityGrid | null): void {
     const data: Plotly.Data[] = [];
 
-    if (zvc) {
+    if (zvc && zvc.forbidden.length > 1 && zvc.forbidden[0].length > 1) {
       const {xMin, xMax, yMin, yMax, forbidden} = zvc;
       const nx = forbidden.length;
       const ny = forbidden[0].length;

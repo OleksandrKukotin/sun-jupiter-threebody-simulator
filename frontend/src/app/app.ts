@@ -19,7 +19,7 @@ export class App {
   protected readonly selectedPreset = signal<OrbitPreset | null>(null);
   protected readonly trajectoryResult = signal<TrajectoryResult | null>(null);
   protected readonly lagrangePoints = signal<LagrangePoint[]>([]);
-  protected readonly zvcGrig = signal<ZeroVelocityGrid | null>(null);
+  protected readonly zvcGrid = signal<ZeroVelocityGrid | null>(null);
   private readonly plot = viewChild(TrajectoryPlot);
 
   ngOnInit(): void {
@@ -50,12 +50,13 @@ export class App {
 
   private applyResult(result: TrajectoryResult): void {
     this.trajectoryResult.set(result);
-    this.zvcGrig.set(null);
+    this.zvcGrid.set(null);
 
     const c = result.initialJacobiConstant;
-    const bounds = {xMin: -1.5, xMax: 1.5, yMin: -1.5, yMax: 1.5, resolution: 200};
-    this.api.getZeroVelocity(c, bounds).subscribe({
-      next: (forbidden) => this.zvcGrig.set({...bounds, forbidden}),
+    const bounds = {xMin: -1.5, xMax: 1.5, yMin: -1.5, yMax: 1.5};
+    const resolution = 200;
+    this.api.getZeroVelocity(c, {...bounds, resolution}).subscribe({
+      next: (forbidden) => this.zvcGrid.set({...bounds, forbidden}),
       error: (e) => console.error('ZVC fetch has failed', e)
     });
   }

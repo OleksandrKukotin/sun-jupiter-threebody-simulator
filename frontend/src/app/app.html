@@ -13,10 +13,6 @@
           C₀ = {{ result.initialJacobiConstant | number:'1.6-6' }} ·
           C_f = {{ result.finalJacobiConstant | number:'1.6-6' }}
         </p>
-      </header>
-      <header class="plot-header">
-        <h3>{{ selectedPreset()?.name ?? 'Custom run' }}</h3>
-        <p>...</p>
         <app-export-controls
           [result]="result"
           [filenameBase]="filenameBase()"
@@ -25,7 +21,7 @@
       <app-trajectory-plot
         [result]="result"
         [lagrangePoints]="lagrangePoints()"
-        [zvcGrid]="zvcGrig()"/>
+        [zvcGrid]="zvcGrid()"/>
     } @else {
       <p class="empty-state">Select a preset to run a simulation.</p>
     }
