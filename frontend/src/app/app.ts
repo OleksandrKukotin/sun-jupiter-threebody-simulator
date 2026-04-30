@@ -6,10 +6,11 @@ import {CustomRun} from './custom-run/custom-run';
 import {LagrangePoint, OrbitPreset, TrajectoryResult, ZeroVelocityGrid} from './api/models';
 import {DecimalPipe} from '@angular/common';
 import {ApiService} from './api/api.service';
+import {Trajectory3d} from './trajectory-3d/trajectory-3d';
 
 @Component({
   selector: 'app-root',
-  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe, ExportControls],
+  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe, ExportControls, Trajectory3d],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -20,7 +21,9 @@ export class App {
   protected readonly trajectoryResult = signal<TrajectoryResult | null>(null);
   protected readonly lagrangePoints = signal<LagrangePoint[]>([]);
   protected readonly zvcGrid = signal<ZeroVelocityGrid | null>(null);
+
   private readonly plot = viewChild(TrajectoryPlot);
+  private readonly viewMode = signal<'2d' | '3d'>('2d');
 
   ngOnInit(): void {
     this.api.getLagrangePoints().subscribe({
