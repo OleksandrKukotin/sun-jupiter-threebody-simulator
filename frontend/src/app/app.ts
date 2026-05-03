@@ -23,7 +23,11 @@ export class App {
   protected readonly zvcGrid = signal<ZeroVelocityGrid | null>(null);
 
   private readonly plot = viewChild(TrajectoryPlot);
-  private readonly viewMode = signal<'2d' | '3d'>('2d');
+  protected readonly viewMode = signal<'2d' | '3d'>('2d');
+
+  protected toggleView(): void {
+    this.viewMode.update(m => m === '2d' ? '3d' : '2d');
+  }
 
   ngOnInit(): void {
     this.api.getLagrangePoints().subscribe({

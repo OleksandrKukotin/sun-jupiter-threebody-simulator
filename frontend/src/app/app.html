@@ -13,15 +13,28 @@
           C₀ = {{ result.initialJacobiConstant | number:'1.6-6' }} ·
           C_f = {{ result.finalJacobiConstant | number:'1.6-6' }}
         </p>
-        <app-export-controls
-          [result]="result"
-          [filenameBase]="filenameBase()"
-          (pngRequested)="onPngRequested()"/>
+        <div class="plot-header-actions">
+          <button class="view-toggle" (click)="toggleView()">
+            {{ viewMode() === '2d' ? '3D View' : '2D View' }}
+          </button>
+          @if (viewMode() === '2d') {
+            <app-export-controls
+              [result]="result"
+              [filenameBase]="filenameBase()"
+              (pngRequested)="onPngRequested()"/>
+          }
+        </div>
       </header>
-      <app-trajectory-plot
-        [result]="result"
-        [lagrangePoints]="lagrangePoints()"
-        [zvcGrid]="zvcGrid()"/>
+      @if (viewMode() === '2d') {
+        <app-trajectory-plot
+          [result]="result"
+          [lagrangePoints]="lagrangePoints()"
+          [zvcGrid]="zvcGrid()"/>
+      } @else {
+        <app-trajectory-3d
+          [trajectoryResult]="result"
+          [lagrangePoints]="lagrangePoints()"/>
+      }
     } @else {
       <p class="empty-state">Select a preset to run a simulation.</p>
     }
