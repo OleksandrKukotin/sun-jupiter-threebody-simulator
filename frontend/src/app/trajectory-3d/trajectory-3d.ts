@@ -1,4 +1,5 @@
 import { LagrangePoint, TrajectoryResult } from '../api/models';
+import { MU } from '../api/physics-constants';
 import {
   AfterViewInit,
   Component,
@@ -10,8 +11,6 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-const MU = 9.5368e-4;
 
 @Component({
   selector: 'app-trajectory-3d',
@@ -138,10 +137,11 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
   }
 
   private buildLagrangePoints(lps: LagrangePoint[]): void {
-    const geo = new THREE.SphereGeometry(0.015, 8, 8);
-    const mat = new THREE.MeshPhongMaterial({ color: 0x44ff88, emissive: 0x22aa44, emissiveIntensity: 0.3 });
     for (const lp of lps) {
-      const mesh = new THREE.Mesh(geo, mat);
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.015, 8, 8),
+        new THREE.MeshPhongMaterial({ color: 0x44ff88, emissive: 0x22aa44, emissiveIntensity: 0.3 })
+      );
       mesh.position.set(lp.x, lp.y, 0);
       this.lpGroup.add(mesh);
     }
@@ -149,9 +149,10 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
 
   private clearGroup(group: THREE.Group): void {
     for (const child of group.children) {
-      const obj = child as THREE.Mesh;
-      if ('geometry' in obj) obj.geometry.dispose();
-      if ('material' in obj) (obj.material as THREE.Material).dispose();
+      if (child instanceof THREE.Mesh || child instanceof THREE.Line) {
+        child.geometry.dispose();
+        (child.material as THREE.Material).dispose();
+      }
     }
     group.clear();
   }

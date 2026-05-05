@@ -1,4 +1,4 @@
-import {Component, inject, signal, viewChild} from '@angular/core';
+import {Component, OnInit, inject, signal, viewChild} from '@angular/core';
 import {ExportControls} from './export/export-controls';
 import {PresetList} from './preset-list/preset-list';
 import {TrajectoryPlot} from './trajectory-plot/trajectory-plot';
@@ -14,7 +14,7 @@ import {Trajectory3d} from './trajectory-3d/trajectory-3d';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   private readonly api = inject(ApiService);
 
   protected readonly selectedPreset = signal<OrbitPreset | null>(null);
