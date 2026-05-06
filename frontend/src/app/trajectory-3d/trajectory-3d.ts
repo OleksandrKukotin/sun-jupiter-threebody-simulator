@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 @Component({
   selector: 'app-trajectory-3d',
@@ -37,10 +38,12 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
+  private labelRenderer!: CSS2DRenderer;
   private controls!: OrbitControls;
   private animationId = 0;
   private resizeObserver!: ResizeObserver;
 
+  private readonly staticGroup = new THREE.Group();
   private readonly trajGroup = new THREE.Group();
   private readonly lpGroup = new THREE.Group();
 
@@ -65,6 +68,10 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     cancelAnimationFrame(this.animationId);
     this.resizeObserver?.disconnect();
+    this.clearGroup(this.staticGroup);
+    this.clearGroup(this.trajGroup);
+    this.clearGroup(this.lpGroup);
+    this.labelRenderer?.domElement.remove();
     this.renderer?.dispose();
   }
 
@@ -84,12 +91,19 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.renderer.setSize(w, h);
     host.appendChild(this.renderer.domElement);
 
+    this.labelRenderer = new CSS2DRenderer();
+    this.labelRenderer.setSize(w, h);
+    this.labelRenderer.domElement.style.cssText =
+      'position:absolute;top:0;left:0;pointer-events:none;';
+    host.style.position = 'relative';
+    host.appendChild(this.labelRenderer.domElement);
+
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
     this.controls.target.set(0.5, 0, 0);
 
-    this.scene.add(this.trajGroup, this.lpGroup);
+    this.scene.add(this.staticGroup, this.trajGroup, this.lpGroup);
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dir = new THREE.DirectionalLight(0xffffff, 0.8);
     dir.position.set(2, 3, 4);
@@ -97,7 +111,7 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
 
     const grid = new THREE.GridHelper(4, 20, 0x222244, 0x1a1a33);
     grid.rotation.x = Math.PI / 2;
-    this.scene.add(grid);
+    this.staticGroup.add(grid);
   }
 
   private buildStaticObjects(): void {
@@ -106,14 +120,16 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
       new THREE.MeshPhongMaterial({ color: 0xffdd44, emissive: 0xffaa00, emissiveIntensity: 0.4 })
     );
     sun.position.set(-MU, 0, 0);
-    this.scene.add(sun);
+    sun.add(this.makeLabel('Sun'));
+    this.staticGroup.add(sun);
 
     const jupiter = new THREE.Mesh(
       new THREE.SphereGeometry(0.025, 16, 16),
       new THREE.MeshPhongMaterial({ color: 0xc88040 })
     );
     jupiter.position.set(1 - MU, 0, 0);
-    this.scene.add(jupiter);
+    jupiter.add(this.makeLabel('Jupiter'));
+    this.staticGroup.add(jupiter);
   }
 
   private rebuildDynamicObjects(result: TrajectoryResult | null, lps: LagrangePoint[]): void {
@@ -143,8 +159,21 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
         new THREE.MeshPhongMaterial({ color: 0x44ff88, emissive: 0x22aa44, emissiveIntensity: 0.3 })
       );
       mesh.position.set(lp.x, lp.y, 0);
+      mesh.add(this.makeLabel(lp.name));
       this.lpGroup.add(mesh);
     }
+  }
+
+  private makeLabel(text: string): CSS2DObject {
+    const div = document.createElement('div');
+    div.textContent = text;
+    div.style.cssText =
+      'color:#e2e8f0;font-size:11px;font-family:system-ui,sans-serif;' +
+      'padding:1px 4px;background:rgba(0,0,0,0.45);border-radius:3px;' +
+      'white-space:nowrap;';
+    const label = new CSS2DObject(div);
+    label.position.set(0, 0.04, 0);
+    return label;
   }
 
   private clearGroup(group: THREE.Group): void {
@@ -161,6 +190,7 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.animationId = requestAnimationFrame(() => this.animate());
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
   }
 
   private onResize(): void {
@@ -168,5 +198,6 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.camera.aspect = host.clientWidth / host.clientHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(host.clientWidth, host.clientHeight);
+    this.labelRenderer.setSize(host.clientWidth, host.clientHeight);
   }
 }
