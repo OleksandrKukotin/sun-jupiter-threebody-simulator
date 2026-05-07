@@ -42,6 +42,7 @@ npm run build
 - `src/app/custom-run/` — reactive form for arbitrary initial conditions; can pre-fill from a selected preset
 - `src/app/export/` — `ExportService` (JSON/CSV via Blob download) + `ExportControls` component; PNG is delegated up to `App` so the trajectory-plot's `downloadPng` can run with the Plotly graph div in scope
 - `src/types/plotly-cartesian-dist-min.d.ts` — type shim re-exporting `plotly.js` types for the `plotly.js-cartesian-dist-min` bundle (partial bundle, ~700 kB; chosen over the full `dist-min` to fit the Angular initial-bundle budget)
+- `src/app/trajectory-3d/` — Three.js 3D viewer; renders trajectory as a `BufferGeometry` line, Sun/Jupiter as spheres, Lagrange points as markers, on a dark ecliptic-plane grid. `OrbitControls` handles mouse rotate/zoom/pan. The component uses Angular `effect()` to rebuild dynamic scene objects when inputs change, and `ResizeObserver` to keep the renderer sized to its host. PNG export is unavailable in 3D mode (delegated to Plotly in the 2D view). Toggle between views via the button in the plot header (`App.viewMode` signal).
 
 ## Docker
 

@@ -1,4 +1,4 @@
-import {Component, inject, signal, viewChild} from '@angular/core';
+import {Component, OnInit, inject, signal, viewChild} from '@angular/core';
 import {ExportControls} from './export/export-controls';
 import {PresetList} from './preset-list/preset-list';
 import {TrajectoryPlot} from './trajectory-plot/trajectory-plot';
@@ -6,21 +6,28 @@ import {CustomRun} from './custom-run/custom-run';
 import {LagrangePoint, OrbitPreset, TrajectoryResult, ZeroVelocityGrid} from './api/models';
 import {DecimalPipe} from '@angular/common';
 import {ApiService} from './api/api.service';
+import {Trajectory3d} from './trajectory-3d/trajectory-3d';
 
 @Component({
   selector: 'app-root',
-  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe, ExportControls],
+  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe, ExportControls, Trajectory3d],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   private readonly api = inject(ApiService);
 
   protected readonly selectedPreset = signal<OrbitPreset | null>(null);
   protected readonly trajectoryResult = signal<TrajectoryResult | null>(null);
   protected readonly lagrangePoints = signal<LagrangePoint[]>([]);
   protected readonly zvcGrid = signal<ZeroVelocityGrid | null>(null);
+
   private readonly plot = viewChild(TrajectoryPlot);
+  protected readonly viewMode = signal<'2d' | '3d'>('2d');
+
+  protected toggleView(): void {
+    this.viewMode.update(m => m === '2d' ? '3d' : '2d');
+  }
 
   ngOnInit(): void {
     this.api.getLagrangePoints().subscribe({

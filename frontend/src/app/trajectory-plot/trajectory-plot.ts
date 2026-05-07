@@ -9,8 +9,7 @@ import {
 } from '@angular/core';
 import Plotly from 'plotly.js-cartesian-dist-min';
 import {LagrangePoint, TrajectoryResult, ZeroVelocityGrid} from '../api/models';
-
-const MU = 9.5368e-4;
+import {MU} from '../api/physics-constants';
 
 @Component({
   selector: 'app-trajectory-plot',

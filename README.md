@@ -69,7 +69,7 @@ The simulator lets you explore:
 - [x] Responsive UI with reactive forms for custom initial conditions
 - [x] Lagrange points and zero-velocity curve overlays
 - [x] Export functionality (JSON, CSV, PNG)
-- [ ] 3D visualization (Three.js planned)
+- [x] 3D visualization (Three.js) with interactive orbit controls and 2D/3D toggle
 
 #### Phase 3 – Advanced Astrodynamics
 - [ ] Invariant manifolds and low-energy transfers

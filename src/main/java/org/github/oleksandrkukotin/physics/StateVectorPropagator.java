@@ -61,7 +61,7 @@ public class StateVectorPropagator {
         integrator.integrate(equations, 0.0, y0, request.duration(), yOut);
 
         double cInitial = jacobiConstant.compute(request.initialState());
-        double cFinal = points.get(points.size() - 1).jacobiConstant();
+        double cFinal = points.getLast().jacobiConstant();
         return new TrajectoryResult(points, cInitial, cFinal);
     }
 }
