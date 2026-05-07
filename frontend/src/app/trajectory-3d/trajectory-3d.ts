@@ -68,6 +68,10 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     cancelAnimationFrame(this.animationId);
     this.resizeObserver?.disconnect();
+    this.controls?.dispose();
+    if (this.renderer?.domElement?.parentElement === this.hostRef.nativeElement) {
+      this.hostRef.nativeElement.removeChild(this.renderer.domElement);
+    }
     this.clearGroup(this.staticGroup);
     this.clearGroup(this.trajGroup);
     this.clearGroup(this.lpGroup);
@@ -195,9 +199,12 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
 
   private onResize(): void {
     const host = this.hostRef.nativeElement;
-    this.camera.aspect = host.clientWidth / host.clientHeight;
+    const w = host.clientWidth;
+    const h = host.clientHeight;
+    if (!w || !h) return;
+    this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(host.clientWidth, host.clientHeight);
-    this.labelRenderer.setSize(host.clientWidth, host.clientHeight);
+    this.renderer.setSize(w, h);
+    this.labelRenderer.setSize(w, h);
   }
 }
