@@ -3,6 +3,7 @@ import {Injectable, inject} from '@angular/core';
 import {Observable} from 'rxjs';
 import {
   LagrangePoint,
+  ManifoldResult,
   OrbitPreset,
   SimulationRequest,
   TrajectoryResult
@@ -30,6 +31,21 @@ export class ApiService {
       if (v !== undefined) params = params.set(k, v);
     }
     return this.http.get<boolean[][]>(`${this.base}/simulation/zero-velocity-curve`, {params});
+  }
+
+  getManifold(
+    lagrangePointId: string,
+    opts: {
+      perturbation?: number; duration?: number;
+      absoluteTolerance?: number; relativeTolerance?: number;
+      minStep?: number; maxStep?: number;
+    } = {},
+  ): Observable<ManifoldResult> {
+    let params = new HttpParams();
+    for (const [k, v] of Object.entries(opts)) {
+      if (v !== undefined) params = params.set(k, v);
+    }
+    return this.http.get<ManifoldResult>(`${this.base}/manifolds/${lagrangePointId}`, {params});
   }
 
   listPresets(): Observable<OrbitPreset[]> {

@@ -41,6 +41,17 @@ export interface OrbitPreset {
   expectedJacobiConstant: number;
 }
 
+export interface ManifoldBranch {
+  name: string;
+  points: TrajectoryPoint[];
+}
+
+export interface ManifoldResult {
+  lagrangePoint: LagrangePoint;
+  unstableEigenvalue: number;
+  branches: ManifoldBranch[];
+}
+
 export interface ZeroVelocityGrid {
   xMin: number;
   xMax: number;
