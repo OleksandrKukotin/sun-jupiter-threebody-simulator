@@ -66,11 +66,7 @@ public class CR3BPVariationalEquations implements FirstOrderDifferentialEquation
         double yDot_ = y[3];
         yDot[0] = xDot;
         yDot[1] = yDot_;
-        // TODO 1: pull out x, yPos, xDot, yDot_ from y[0..3] and compute
-        //         yDot[0..3] exactly like CR3BPEquations does (position rates =
-        //         velocities, velocity rates = the standard CR3BP accelerations).
-        //         Either duplicate the four lines or delegate to a shared helper
-        //         so this and CR3BPEquations can't drift out of sync.
+        
         double r1_3 = r1 * r1 * r1;
         double r1_5 = r1_3 * r1 * r1;
         double r2_3 = r2 * r2 * r2;
@@ -85,9 +81,7 @@ public class CR3BPVariationalEquations implements FirstOrderDifferentialEquation
                 + 3 * PhysicsConstants.ONE_MINUS_MU * (yPos * yPos) / r1_5
                 + 3 * PhysicsConstants.MU * (yPos*yPos) / r2_5;
 
-        // TODO 3: build A as a 4x4 double[][] (or reuse a package-private static
-        //         helper `computeJacobian(x, y)` that LyapunovOrbitFinder can also
-        //         call at the Lagrange point — avoids duplicating Uxx/Uxy/Uyy).
+        double[][] A = { {0, 0, 1, 0}, {0, 0, 0, 1}, {Uxx, Uxy, 0, 2}, {Uxy, Uyy, -2, 0} };
 
         // TODO 4: reshape y[4..19] into Phi (4x4, row-major per the layout above).
 
