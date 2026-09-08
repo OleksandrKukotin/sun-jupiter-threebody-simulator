@@ -66,7 +66,7 @@ public class CR3BPVariationalEquations implements FirstOrderDifferentialEquation
         double yDot_ = y[3];
         yDot[0] = xDot;
         yDot[1] = yDot_;
-        
+
         double r1_3 = r1 * r1 * r1;
         double r1_5 = r1_3 * r1 * r1;
         double r2_3 = r2 * r2 * r2;
@@ -82,25 +82,38 @@ public class CR3BPVariationalEquations implements FirstOrderDifferentialEquation
                 + 3 * PhysicsConstants.MU * (yPos*yPos) / r2_5;
 
         double[][] A = { {0, 0, 1, 0}, {0, 0, 0, 1}, {Uxx, Uxy, 0, 2}, {Uxy, Uyy, -2, 0} };
+        int matrixSize = 4;
+        double[][] Phi = new double[matrixSize][matrixSize];
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                Phi[i][j] = y[4 + i*4 + j];
+            }
+        }
+        double[][] dPhi = new double[matrixSize][matrixSize];
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                for (int k = 0; k < matrixSize; k++) {
+                    dPhi[i][j] += A[i][k] * Phi[k][j];
+                }
+            }
+        }
 
-        // TODO 4: reshape y[4..19] into Phi (4x4, row-major per the layout above).
-
-        // TODO 5: compute dPhi = A * Phi (plain 4x4 matrix multiply — Phi is small,
-        //         don't reach for a matrix library here, four nested loops is fine
-        //         and keeps this method allocation-free per step).
-
-        // TODO 6: flatten dPhi back into yDot[4..19], same row-major layout.
-
-        throw new UnsupportedOperationException("TODO: implement variational equations");
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                yDot[4 + i*4 +j] = dPhi[i][j];
+            }
+        }
     }
 
-    /**
-     * TODO: convenience factory — given an initial StateVector, returns the
-     * full 20-dim initial condition array with Phi(0) = identity. Both
-     * StateVectorPropagator-style integration and LyapunovOrbitFinder will want
-     * this, so it belongs here rather than duplicated in the finder.
-     */
     public static double[] initialAugmentedState(StateVector state) {
-        throw new UnsupportedOperationException("TODO: [x,y,xDot,yDot, I(4x4) flattened]");
+        double[] result = new double[20];
+        System.arraycopy(state.toArray(), 0, result, 0, 4);
+        int matrixSize = 4;
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                result[4 + i * 4 + j] = (i == j) ? 1.0 : 0.0;
+            }
+        }
+        return result;
     }
 }
