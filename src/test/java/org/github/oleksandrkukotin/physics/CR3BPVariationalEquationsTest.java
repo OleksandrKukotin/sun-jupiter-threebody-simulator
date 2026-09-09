@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CR3BPVariationalEquationsTest {
 
-    private final CR3BPVariationalEquations variational = new CR3BPVariationalEquations();
     private final CR3BPEquations equations = new CR3BPEquations();
+    private final CR3BPVariationalEquations variational = new CR3BPVariationalEquations(equations);
 
     @Test
     void getDimension_returnsTwenty() {
@@ -33,6 +33,37 @@ class CR3BPVariationalEquationsTest {
                 double expected = (i == j) ? 1.0 : 0.0;
                 assertEquals(expected, augmented[4 + i * 4 + j], 1e-15,
                         "Phi(0) must be the identity at [" + i + "][" + j + "]");
+            }
+        }
+    }
+
+    /**
+     * The state block y[0..3] must evolve under the exact same dynamics as a plain
+     * {@link CR3BPEquations} propagation — regression test for a bug where the augmented
+     * ODE computed the STM block correctly but left yDot[2]/yDot[3] (the acceleration)
+     * unset, silently freezing velocity during STM propagation.
+     */
+    @Test
+    void computeDerivatives_stateBlockMatchesPlainEquations_atMultiplePoints() {
+        double[][] states = {
+                {0.3, 0.5, 0.1, -0.2},
+                {0.7, -0.4, 0.0, 0.0},
+                {-0.2, 0.9, 0.05, 0.05},
+                {1.2, 0.1, -0.3, 0.4}
+        };
+
+        for (double[] state : states) {
+            double[] y = new double[20];
+            System.arraycopy(state, 0, y, 0, 4);
+            double[] yDot = new double[20];
+            variational.computeDerivatives(0.0, y, yDot);
+
+            double[] expected = new double[4];
+            equations.computeDerivatives(0.0, state, expected);
+
+            for (int i = 0; i < 4; i++) {
+                assertEquals(expected[i], yDot[i], 1e-15,
+                        "state-block derivative[" + i + "] mismatch at state " + Arrays.toString(state));
             }
         }
     }
