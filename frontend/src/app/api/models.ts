@@ -48,3 +48,16 @@ export interface ZeroVelocityGrid {
   yMax: number;
   forbidden: boolean[][];
 }
+
+export interface PeriodicOrbit {
+  lagrangePoint: string;
+  amplitude: number;
+  initialState: StateVector;
+  period: number;
+  jacobiConstant: number;
+}
+
+export interface PeriodicOrbitResult {
+  orbit: PeriodicOrbit;
+  points: TrajectoryPoint[];
+}

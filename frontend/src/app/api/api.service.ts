@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {
   LagrangePoint,
   OrbitPreset,
+  PeriodicOrbitResult,
   SimulationRequest,
   TrajectoryResult
 } from './models';
@@ -38,5 +39,10 @@ export class ApiService {
 
   runPreset(id: string): Observable<TrajectoryResult> {
     return this.http.post<TrajectoryResult>(`${this.base}/presets/${id}/run`, {});
+  }
+
+  getPeriodicOrbit(point: string, amplitude: number, family = 'lyapunov'): Observable<PeriodicOrbitResult> {
+    const params = new HttpParams().set('point', point).set('family', family).set('amplitude', amplitude);
+    return this.http.get<PeriodicOrbitResult>(`${this.base}/periodic-orbits`, {params});
   }
 }

@@ -8,7 +8,7 @@ import {
   viewChild
 } from '@angular/core';
 import Plotly from 'plotly.js-cartesian-dist-min';
-import {LagrangePoint, TrajectoryResult, ZeroVelocityGrid} from '../api/models';
+import {LagrangePoint, PeriodicOrbitResult, TrajectoryResult, ZeroVelocityGrid} from '../api/models';
 import {MU} from '../api/physics-constants';
 
 @Component({
@@ -33,6 +33,7 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
   readonly result = input.required<TrajectoryResult>();
   readonly lagrangePoints = input<LagrangePoint[]>([]);
   readonly zvcGrid = input<ZeroVelocityGrid | null>(null);
+  readonly periodicOrbit = input<PeriodicOrbitResult | null>(null);
   private readonly plotEl = viewChild.required<ElementRef<HTMLDivElement>>('plot');
   private initialized = false;
 
@@ -41,13 +42,14 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
       const r = this.result();
       const pts = this.lagrangePoints();
       const zvc = this.zvcGrid();
-      if (this.initialized && r) this.render(r, pts, zvc);
+      const orbit = this.periodicOrbit();
+      if (this.initialized && r) this.render(r, pts, zvc, orbit);
     });
   }
 
   ngAfterViewInit(): void {
     this.initialized = true;
-    this.render(this.result(), this.lagrangePoints(), this.zvcGrid());
+    this.render(this.result(), this.lagrangePoints(), this.zvcGrid(), this.periodicOrbit());
   }
 
   ngOnDestroy(): void {
@@ -64,7 +66,12 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
     });
   }
 
-  private render(result: TrajectoryResult, lagrangePoints: LagrangePoint[], zvc: ZeroVelocityGrid | null): void {
+  private render(
+    result: TrajectoryResult,
+    lagrangePoints: LagrangePoint[],
+    zvc: ZeroVelocityGrid | null,
+    periodicOrbit: PeriodicOrbitResult | null
+  ): void {
     const data: Plotly.Data[] = [];
 
     if (zvc && zvc.forbidden.length > 1 && zvc.forbidden[0].length > 1) {
@@ -138,6 +145,17 @@ export class TrajectoryPlot implements AfterViewInit, OnDestroy {
       showlegend: true,
       hovermode: 'closest'
     };
+
+    if (periodicOrbit && periodicOrbit.points.length > 0) {
+      data.push({
+        type: 'scatter',
+        mode: 'lines',
+        x: periodicOrbit.points.map(p => p.state.x),
+        y: periodicOrbit.points.map(p => p.state.y),
+        name: `${periodicOrbit.orbit.lagrangePoint} Lyapunov (Ax=${periodicOrbit.orbit.amplitude})`,
+        line: {color: '#dc2626', width: 1.5, dash: 'dot'}
+      });
+    }
 
     if (lagrangePoints.length > 0) {
       data.push({

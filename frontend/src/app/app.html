@@ -2,6 +2,7 @@
   <aside class="sidebar">
     <app-preset-list (presetRun)="onPresetRun($event)"/>
     <app-custom-run [preset]="selectedPreset()" (customRun)="onCustomRun($event)"/>
+    <app-periodic-orbit-panel (overlayChange)="periodicOrbit.set($event)"/>
   </aside>
 
   <section class="plot-pane">
@@ -29,11 +30,13 @@
         <app-trajectory-plot
           [result]="result"
           [lagrangePoints]="lagrangePoints()"
-          [zvcGrid]="zvcGrid()"/>
+          [zvcGrid]="zvcGrid()"
+          [periodicOrbit]="periodicOrbit()"/>
       } @else {
         <app-trajectory-3d
           [trajectoryResult]="result"
-          [lagrangePoints]="lagrangePoints()"/>
+          [lagrangePoints]="lagrangePoints()"
+          [periodicOrbit]="periodicOrbit()"/>
       }
     } @else {
       <p class="empty-state">Select a preset to run a simulation.</p>

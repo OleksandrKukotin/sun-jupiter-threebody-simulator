@@ -1,4 +1,4 @@
-import { LagrangePoint, TrajectoryResult } from '../api/models';
+import { LagrangePoint, PeriodicOrbitResult, TrajectoryResult } from '../api/models';
 import { MU } from '../api/physics-constants';
 import {
   AfterViewInit,
@@ -32,6 +32,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
 export class Trajectory3d implements AfterViewInit, OnDestroy {
   trajectoryResult = input<TrajectoryResult | null>(null);
   lagrangePoints = input<LagrangePoint[]>([]);
+  periodicOrbit = input<PeriodicOrbitResult | null>(null);
 
   @ViewChild('plotHost') private hostRef!: ElementRef<HTMLDivElement>;
 
@@ -46,19 +47,21 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
   private readonly staticGroup = new THREE.Group();
   private readonly trajGroup = new THREE.Group();
   private readonly lpGroup = new THREE.Group();
+  private readonly periodicOrbitGroup = new THREE.Group();
 
   constructor() {
     effect(() => {
       const result = this.trajectoryResult();
       const lps = this.lagrangePoints();
-      if (this.scene) this.rebuildDynamicObjects(result, lps);
+      const orbit = this.periodicOrbit();
+      if (this.scene) this.rebuildDynamicObjects(result, lps, orbit);
     });
   }
 
   ngAfterViewInit(): void {
     this.initScene();
     this.buildStaticObjects();
-    this.rebuildDynamicObjects(this.trajectoryResult(), this.lagrangePoints());
+    this.rebuildDynamicObjects(this.trajectoryResult(), this.lagrangePoints(), this.periodicOrbit());
     this.animate();
 
     this.resizeObserver = new ResizeObserver(() => this.onResize());
@@ -75,6 +78,7 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.clearGroup(this.staticGroup);
     this.clearGroup(this.trajGroup);
     this.clearGroup(this.lpGroup);
+    this.clearGroup(this.periodicOrbitGroup);
     this.labelRenderer?.domElement.remove();
     this.renderer?.dispose();
   }
@@ -107,7 +111,7 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.controls.dampingFactor = 0.05;
     this.controls.target.set(0.5, 0, 0);
 
-    this.scene.add(this.staticGroup, this.trajGroup, this.lpGroup);
+    this.scene.add(this.staticGroup, this.trajGroup, this.lpGroup, this.periodicOrbitGroup);
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dir = new THREE.DirectionalLight(0xffffff, 0.8);
     dir.position.set(2, 3, 4);
@@ -136,15 +140,20 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     this.staticGroup.add(jupiter);
   }
 
-  private rebuildDynamicObjects(result: TrajectoryResult | null, lps: LagrangePoint[]): void {
+  private rebuildDynamicObjects(
+    result: TrajectoryResult | null,
+    lps: LagrangePoint[],
+    periodicOrbit: PeriodicOrbitResult | null
+  ): void {
     this.clearGroup(this.trajGroup);
     this.clearGroup(this.lpGroup);
-    if (result?.points.length) this.buildTrajectory(result);
+    this.clearGroup(this.periodicOrbitGroup);
+    if (result?.points.length) this.buildLine(this.trajGroup, result.points, 0x4488ff);
     if (lps.length) this.buildLagrangePoints(lps);
+    if (periodicOrbit?.points.length) this.buildLine(this.periodicOrbitGroup, periodicOrbit.points, 0xff4444);
   }
 
-  private buildTrajectory(result: TrajectoryResult): void {
-    const pts = result.points;
+  private buildLine(group: THREE.Group, pts: TrajectoryResult['points'], color: number): void {
     const positions = new Float32Array(pts.length * 3);
     for (let i = 0; i < pts.length; i++) {
       positions[i * 3]     = pts[i].state.x;
@@ -153,7 +162,7 @@ export class Trajectory3d implements AfterViewInit, OnDestroy {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.trajGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x4488ff })));
+    group.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color })));
   }
 
   private buildLagrangePoints(lps: LagrangePoint[]): void {

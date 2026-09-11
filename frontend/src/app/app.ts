@@ -3,14 +3,15 @@ import {ExportControls} from './export/export-controls';
 import {PresetList} from './preset-list/preset-list';
 import {TrajectoryPlot} from './trajectory-plot/trajectory-plot';
 import {CustomRun} from './custom-run/custom-run';
-import {LagrangePoint, OrbitPreset, TrajectoryResult, ZeroVelocityGrid} from './api/models';
+import {PeriodicOrbitPanel} from './periodic-orbit-panel/periodic-orbit-panel';
+import {LagrangePoint, OrbitPreset, PeriodicOrbitResult, TrajectoryResult, ZeroVelocityGrid} from './api/models';
 import {DecimalPipe} from '@angular/common';
 import {ApiService} from './api/api.service';
 import {Trajectory3d} from './trajectory-3d/trajectory-3d';
 
 @Component({
   selector: 'app-root',
-  imports: [PresetList, TrajectoryPlot, CustomRun, DecimalPipe, ExportControls, Trajectory3d],
+  imports: [PresetList, TrajectoryPlot, CustomRun, PeriodicOrbitPanel, DecimalPipe, ExportControls, Trajectory3d],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -21,6 +22,7 @@ export class App implements OnInit {
   protected readonly trajectoryResult = signal<TrajectoryResult | null>(null);
   protected readonly lagrangePoints = signal<LagrangePoint[]>([]);
   protected readonly zvcGrid = signal<ZeroVelocityGrid | null>(null);
+  protected readonly periodicOrbit = signal<PeriodicOrbitResult | null>(null);
 
   private readonly plot = viewChild(TrajectoryPlot);
   protected readonly viewMode = signal<'2d' | '3d'>('2d');
