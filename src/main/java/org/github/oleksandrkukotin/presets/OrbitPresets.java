@@ -2,18 +2,25 @@ package org.github.oleksandrkukotin.presets;
 
 import org.github.oleksandrkukotin.config.PhysicsConstants;
 import org.github.oleksandrkukotin.model.OrbitPreset;
+import org.github.oleksandrkukotin.model.PeriodicOrbit;
 import org.github.oleksandrkukotin.model.StateVector;
 import org.github.oleksandrkukotin.physics.JacobiConstant;
+import org.github.oleksandrkukotin.physics.LyapunovOrbitFinder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * Hardcoded initial conditions for well-known Sun–Jupiter CR3BP orbits.
+ * Ready-to-run initial conditions for well-known Sun–Jupiter CR3BP orbits.
  *
- * <p>All state vectors use normalized units in the rotating synodic frame.
+ * <p>All state vectors use normalized units in the rotating synodic frame. The tadpole and
+ * horseshoe presets are hardcoded literals; the Lyapunov preset is instead computed once at
+ * construction time via {@link LyapunovOrbitFinder}'s differential corrector, since (unlike
+ * the others) its exact initial state depends on {@link PhysicsConstants#MU} and can't be
+ * hand-picked.
  *
  * @see <a href="https://github.com/OleksandrKukotin/sun-jupiter-threebody-simulator/issues/6">Issue #6</a>
+ * @see <a href="https://github.com/OleksandrKukotin/sun-jupiter-threebody-simulator/issues/16">Issue #16</a>
  */
 @Component
 public class OrbitPresets {
@@ -26,6 +33,9 @@ public class OrbitPresets {
     // libration while keeping the orbit inside the tadpole regime.
     private static final double TADPOLE_DX = 3.0e-3;
 
+    // Well inside the linear-theory regime, so the corrector converges reliably.
+    private static final double LYAPUNOV_L1_AMPLITUDE = 1e-3;
+
     private static final JacobiConstant JACOBI = new JacobiConstant();
 
     private static final StateVector TADPOLE_L4_STATE =
@@ -34,6 +44,23 @@ public class OrbitPresets {
             new StateVector(L4_X + TADPOLE_DX, L5_Y, 0.0, 0.0);
     private static final StateVector HORSESHOE_STATE =
             new StateVector(-1.00045, 0.0, 0.0, 0.0012);
+
+    private final OrbitPreset lyapunovL1Preset;
+
+    public OrbitPresets(LyapunovOrbitFinder lyapunovOrbitFinder) {
+        PeriodicOrbit orbit = lyapunovOrbitFinder.findLyapunovOrbit("L1", LYAPUNOV_L1_AMPLITUDE);
+        this.lyapunovL1Preset = new OrbitPreset(
+                "lyapunov-l1-small",
+                "Small Lyapunov orbit around L1",
+                "Planar Lyapunov orbit around L1 (Ax=" + LYAPUNOV_L1_AMPLITUDE
+                        + "), found via differential correction. Shown for exactly one "
+                        + "period — L1's saddle instability amplifies numerical error too "
+                        + "fast for more laps to stay visually closed.",
+                orbit.initialState(),
+                orbit.period(),
+                orbit.jacobiConstant()
+        );
+    }
 
     public List<OrbitPreset> getAll() {
         return List.of(
@@ -60,7 +87,8 @@ public class OrbitPresets {
                         HORSESHOE_STATE,
                         2000.0,
                         JACOBI.compute(HORSESHOE_STATE)
-                )
+                ),
+                lyapunovL1Preset
         );
     }
 

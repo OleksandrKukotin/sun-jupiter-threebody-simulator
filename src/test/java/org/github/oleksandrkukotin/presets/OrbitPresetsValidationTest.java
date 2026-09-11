@@ -6,7 +6,10 @@ import org.github.oleksandrkukotin.model.SimulationRequest;
 import org.github.oleksandrkukotin.model.TrajectoryPoint;
 import org.github.oleksandrkukotin.model.TrajectoryResult;
 import org.github.oleksandrkukotin.physics.CR3BPEquations;
+import org.github.oleksandrkukotin.physics.CR3BPVariationalEquations;
 import org.github.oleksandrkukotin.physics.JacobiConstant;
+import org.github.oleksandrkukotin.physics.LagrangePointCalculator;
+import org.github.oleksandrkukotin.physics.LyapunovOrbitFinder;
 import org.github.oleksandrkukotin.physics.StateVectorPropagator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,9 +47,12 @@ class OrbitPresetsValidationTest {
 
     @BeforeEach
     void setUp() {
-        presets = new OrbitPresets();
+        CR3BPEquations equations = new CR3BPEquations();
         jacobi = new JacobiConstant();
-        propagator = new StateVectorPropagator(new CR3BPEquations(), jacobi);
+        LyapunovOrbitFinder finder = new LyapunovOrbitFinder(
+                new LagrangePointCalculator(), equations, new CR3BPVariationalEquations(equations), jacobi);
+        presets = new OrbitPresets(finder);
+        propagator = new StateVectorPropagator(equations, jacobi);
     }
 
     @Test
@@ -104,6 +110,31 @@ class OrbitPresetsValidationTest {
         assertTrue(sawTrailing, "horseshoe never reached the L5 side");
         assertTrue(minDistToJupiter > 0.1,
                 "horseshoe came too close to Jupiter: " + minDistToJupiter);
+    }
+
+    @Test
+    void lyapunovL1_isPeriodicAndStaysNearL1() {
+        OrbitPreset p = presets.findById("lyapunov-l1-small");
+        TrajectoryResult r = propagate(p);
+
+        assertJacobiConserved(r, p);
+
+        double l1X = new LagrangePointCalculator().computeAll().stream()
+                .filter(lp -> lp.name().equals("L1"))
+                .findFirst().orElseThrow()
+                .x();
+        // Radius is ~20x the seed amplitude, well clear of both primaries, but tight
+        // enough to catch the corrector converging to the wrong (non-periodic) orbit.
+        assertAllPointsWithin(r, l1X, 0.0, 0.02,
+                "lyapunov-l1-small drifted outside 0.02 of L1");
+
+        double[] initial = p.initialState().toArray();
+        TrajectoryPoint last = r.points().get(r.points().size() - 1);
+        double[] finalState = last.state().toArray();
+        for (int i = 0; i < 4; i++) {
+            assertEquals(initial[i], finalState[i], 1e-6,
+                    "lyapunov-l1-small should return to its initial state after one period");
+        }
     }
 
     @Test
