@@ -1,10 +1,15 @@
 package org.github.oleksandrkukotin.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.github.oleksandrkukotin.config.PhysicsConstants;
 import org.github.oleksandrkukotin.model.SimulationRequest;
 import org.github.oleksandrkukotin.model.StateVector;
+import org.github.oleksandrkukotin.model.TrajectoryResult;
 import org.github.oleksandrkukotin.physics.CR3BPEquations;
+import org.github.oleksandrkukotin.physics.CR3BPUtils;
+import org.github.oleksandrkukotin.physics.JacobiConstant;
+import org.github.oleksandrkukotin.physics.StateVectorPropagator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,11 +21,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.blankOrNullString;
+import java.util.Arrays;
+import java.util.function.DoubleBinaryOperator;
+
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>Impact on a primary: 200, partial trajectory, {@code terminationReason} names the body.</li>
  *   <li>Normal run: 200, {@code terminationReason} is {@code COMPLETED}.</li>
- *   <li>No trajectory can be produced: 422 with a readable {@code message}.</li>
+ *   <li>No trajectory can be produced: 422 with a {@code message} explaining why.</li>
  * </ul>
  */
 @SpringBootTest
@@ -43,6 +52,10 @@ class SimulationControllerCollisionTest {
     private static final double MIN_STEP = 1e-6;
     private static final double MAX_STEP = 1.0;
 
+    private static final double JUPITER_RADIUS = 8.98e-5;
+    private static final double SUN_RADIUS = 8.94e-4;
+    private static final double RADIUS_TOLERANCE = 0.1;
+
     // See StateVectorPropagatorCollisionTest for how these seeds were derived.
     private static final StateVector JUPITER_IMPACT =
             new StateVector(1.14819396326, 0.164613921996, -0.062164220388, -0.27417844989);
@@ -52,28 +65,36 @@ class SimulationControllerCollisionTest {
     /**
      * Starting exactly on a primary makes the first derivative 0/0. NaN then defeats the
      * integrator's step control and it never returns, so without this limit the test
-     * would hang the build instead of failing.
+     * would hang the build instead of failing. Each propagation gets its own counter.
      */
     @TestConfiguration
     static class EvaluationLimitConfig {
-        private static final long MAX_EVALUATIONS = 1_000_000;
 
         @Bean
         @Primary
-        CR3BPEquations evaluationLimitedEquations() {
-            return new CR3BPEquations() {
-                private long evaluations;
-
+        StateVectorPropagator evaluationLimitedPropagator(JacobiConstant jacobiConstant) {
+            return new StateVectorPropagator(new CR3BPEquations(), jacobiConstant) {
                 @Override
-                public synchronized void computeDerivatives(double t, double[] y, double[] yDot) {
-                    if (++evaluations > MAX_EVALUATIONS) {
-                        evaluations = 0;
-                        throw new AssertionError("integrator still running after "
-                                + MAX_EVALUATIONS + " evaluations, state " + java.util.Arrays.toString(y));
-                    }
-                    super.computeDerivatives(t, y, yDot);
+                public TrajectoryResult propagate(SimulationRequest request) {
+                    return new StateVectorPropagator(new EvaluationLimitedEquations(), jacobiConstant)
+                            .propagate(request);
                 }
             };
+        }
+    }
+
+    private static final class EvaluationLimitedEquations extends CR3BPEquations {
+        private static final long MAX_EVALUATIONS = 1_000_000;
+
+        private long evaluations;
+
+        @Override
+        public void computeDerivatives(double t, double[] y, double[] yDot) {
+            if (++evaluations > MAX_EVALUATIONS) {
+                throw new AssertionError("integrator still running after "
+                        + MAX_EVALUATIONS + " evaluations, state " + Arrays.toString(y));
+            }
+            super.computeDerivatives(t, y, yDot);
         }
     }
 
@@ -90,33 +111,63 @@ class SimulationControllerCollisionTest {
                 .content(objectMapper.writeValueAsString(request)));
     }
 
-    private static void assertUnprocessableWithMessage(ResultActions actions) throws Exception {
+    private static StateVector orbitAtTwoRadii(double centreX, double mass, double radius) {
+        double r = 2 * radius;
+        return new StateVector(centreX + r, 0.0, 0.0, Math.sqrt(mass / r));
+    }
+
+    private void assertPartialTrajectoryEndingAtSurface(ResultActions actions, String reason,
+                                                        DoubleBinaryOperator distance, double radius) throws Exception {
+        actions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.terminationReason").value(reason))
+                .andExpect(jsonPath("$.points", hasSize(greaterThan(1))));
+
+        JsonNode points = objectMapper.readTree(actions.andReturn().getResponse().getContentAsString()).get("points");
+        JsonNode finalState = points.get(points.size() - 1).get("state");
+        assertEquals(radius, distance.applyAsDouble(finalState.get("x").asDouble(), finalState.get("y").asDouble()),
+                RADIUS_TOLERANCE * radius, "final sample should be on the surface of the impacted body");
+    }
+
+    private static void assertCompleted(ResultActions actions) throws Exception {
+        actions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.terminationReason").value("COMPLETED"));
+    }
+
+    private static void assertUnprocessableExplaining(ResultActions actions, String expectedTopic) throws Exception {
         actions.andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.message", not(blankOrNullString())))
+                .andExpect(jsonPath("$.message", containsStringIgnoringCase(expectedTopic)))
                 .andExpect(jsonPath("$.message", not(containsString("Exception"))));
     }
 
     @Test
     void propagate_onJupiterImpact_returnsPartialTrajectoryNamingJupiter() throws Exception {
-        propagate(JUPITER_IMPACT, 5.0, MIN_STEP)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.terminationReason").value("COLLISION_JUPITER"))
-                .andExpect(jsonPath("$.points", hasSize(greaterThan(0))));
+        assertPartialTrajectoryEndingAtSurface(propagate(JUPITER_IMPACT, 5.0, MIN_STEP),
+                "COLLISION_JUPITER", CR3BPUtils::distanceToJupiter, JUPITER_RADIUS);
     }
 
     @Test
     void propagate_onSunImpact_returnsPartialTrajectoryNamingSun() throws Exception {
-        propagate(SUN_IMPACT, 5.0, MIN_STEP)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.terminationReason").value("COLLISION_SUN"))
-                .andExpect(jsonPath("$.points", hasSize(greaterThan(0))));
+        assertPartialTrajectoryEndingAtSurface(propagate(SUN_IMPACT, 5.0, MIN_STEP),
+                "COLLISION_SUN", CR3BPUtils::distanceToSun, SUN_RADIUS);
     }
 
     @Test
     void propagate_normalRun_reportsCompleted() throws Exception {
-        propagate(new StateVector(0.5, 0.1, 0.0, 0.5), 5.0, MIN_STEP)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.terminationReason").value("COMPLETED"));
+        assertCompleted(propagate(new StateVector(0.5, 0.1, 0.0, 0.5), 5.0, MIN_STEP));
+    }
+
+    @Test
+    void propagate_orbitCloseToJupiter_reportsCompleted() throws Exception {
+        StateVector s0 = orbitAtTwoRadii(PhysicsConstants.ONE_MINUS_MU, PhysicsConstants.MU, JUPITER_RADIUS);
+
+        assertCompleted(propagate(s0, 0.01, MIN_STEP));
+    }
+
+    @Test
+    void propagate_orbitCloseToSun_reportsCompleted() throws Exception {
+        StateVector s0 = orbitAtTwoRadii(-PhysicsConstants.MU, PhysicsConstants.ONE_MINUS_MU, SUN_RADIUS);
+
+        assertCompleted(propagate(s0, 0.01, MIN_STEP));
     }
 
     @Test
@@ -127,18 +178,18 @@ class SimulationControllerCollisionTest {
         StateVector s0 = new StateVector(PhysicsConstants.ONE_MINUS_MU + r, 0.0, 0.0,
                 Math.sqrt(PhysicsConstants.MU / r));
 
-        assertUnprocessableWithMessage(propagate(s0, 0.5, 0.5));
+        assertUnprocessableExplaining(propagate(s0, 0.5, 0.5), "step");
     }
 
     @Test
-    void propagate_startingExactlyAtJupiterCentre_returns422() throws Exception {
-        assertUnprocessableWithMessage(
-                propagate(new StateVector(PhysicsConstants.ONE_MINUS_MU, 0.0, 0.0, 0.0), 1.0, MIN_STEP));
+    void propagate_startingExactlyAtJupiterCentre_returns422NamingJupiter() throws Exception {
+        assertUnprocessableExplaining(
+                propagate(new StateVector(PhysicsConstants.ONE_MINUS_MU, 0.0, 0.0, 0.0), 1.0, MIN_STEP), "Jupiter");
     }
 
     @Test
-    void propagate_startingExactlyAtSunCentre_returns422() throws Exception {
-        assertUnprocessableWithMessage(
-                propagate(new StateVector(-PhysicsConstants.MU, 0.0, 0.0, 0.0), 1.0, MIN_STEP));
+    void propagate_startingExactlyAtSunCentre_returns422NamingSun() throws Exception {
+        assertUnprocessableExplaining(
+                propagate(new StateVector(-PhysicsConstants.MU, 0.0, 0.0, 0.0), 1.0, MIN_STEP), "Sun");
     }
 }
