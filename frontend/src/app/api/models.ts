@@ -20,10 +20,13 @@ export interface TrajectoryPoint {
   jacobiConstant: number;
 }
 
+export type TerminationReason = 'COMPLETED' | 'COLLISION_SUN' | 'COLLISION_JUPITER';
+
 export interface TrajectoryResult {
   points: TrajectoryPoint[];
   initialJacobiConstant: number;
   finalJacobiConstant: number;
+  terminationReason: TerminationReason;
 }
 
 export interface LagrangePoint {
